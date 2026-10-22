@@ -1,0 +1,8 @@
+function cf {
+    # Procura o cf.py na pasta atual ou usa o caminho fixo do repositório
+    if (Test-Path "cf.py") {
+        python cf.py @args
+    } else {
+        Write-Host "cf.py não foi encontrado no diretório atual!" -ForegroundColor Yellow
+    }
+}

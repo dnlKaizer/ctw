@@ -1,7 +1,7 @@
 import java.io.*;
 import java.util.*;
 
-public class Main {
+public class Template {
     static final int INF = 0x3f3f3f3f;
     static final long LINF = 0x3f3f3f3f3f3f3f3fL;
     static final int MOD = 1_000_000_007;
