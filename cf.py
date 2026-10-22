@@ -6,10 +6,10 @@ DEFAULT_PROBLEMS = ["A", "B", "C", "D", "E", "F"]
 
 def main():
     if len(sys.argv) < 2:
-        print("Uso: python cf.py <contest_id> [problemas]")
+        print("Uso: cf <contest_id> [problemas]")
         print("Exemplos:")
-        print("  python cf.py 2044")
-        print("  python cf.py 2044 A B C")
+        print("  cf 2044")
+        print("  cf 2044 A B C")
         sys.exit(1)
 
     contest_id = sys.argv[1]
@@ -23,7 +23,7 @@ def main():
         sys.exit(1)
 
     template_code = template_path.read_text(encoding="utf-8")
-    target_dir = base_dir / "src" / "cf" / contest_id
+    target_dir = base_dir / "cf" / contest_id
     target_dir.mkdir(parents=True, exist_ok=True)
 
     for p in problems:
@@ -32,9 +32,8 @@ def main():
             print(f"[-] {p}.java já existe. Ignorado.")
             continue
 
-        # Substitui a primeira classe do topo (ex: "public class Main" ou "class Solution") por "public class <Letra>"
+        # Substitui a declaração de classe base do template por "public class <Letra>"
         code = re.sub(r'^(public\s+)?class\s+\w+', f'public class {p}', template_code, count=1, flags=re.MULTILINE)
-        
         file_path.write_text(code, encoding="utf-8")
         print(f"[+] Criado: {file_path.relative_to(base_dir)}")
 

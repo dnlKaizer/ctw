@@ -1,0 +1,19 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Debug Current Problem",
+            "request": "launch",
+            "mainClass": "${fileBasenameNoExtension}",
+            "classPaths": [
+                "${fileDirname}"
+            ],
+            "sourcePaths": [
+                "${fileDirname}"
+            ],
+            "preLaunchTask": "build-current-file",
+            "console": "integratedTerminal"
+        }
+    ]
+}
