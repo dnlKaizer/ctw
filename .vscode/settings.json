@@ -1,10 +1,9 @@
 {
-    "java.project.outputPath": "bin",
-    "java.project.sourcePaths": [
-        "src"
-    ],
-    "java.debug.settings.onBuildFailureProceed": true,
     "files.exclude": {
         "**/*.class": true
-    }
+    },
+    "java.project.sourcePaths": [
+        "cf"
+    ],
+    "java.errors.incompleteClasspath.severity": "ignore"
 }
