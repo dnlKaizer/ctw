@@ -14,15 +14,12 @@ O projeto permite gerar automaticamente a estrutura de pastas para cada contest,
 │   ├── launch.json     # Configuração do debugger (F5)
 │   ├── settings.json   # Ocultação visual dos binários .class
 │   └── tasks.json      # Compilação automática antes do debug
-├── cf/
-│   ├── 1199/
-│   │   ├── A.java
-│   │   └── F.java
-│   └── 2044/
-│       ├── A.java
-│       └── B.java
-├── cf.py               # Script de geração dos arquivos do contest
-├── template.java       # Código base com FastScanner, constantes e I/O
+├── cf/                 # Problemas do Codeforces
+├── bee/                # Problemas do Beecrowd
+├── atc/                # Problemas do AtCoder
+├── gen/                # Testes genéricos e algoritmos
+├── cli.py              # Script unificado de geração dos arquivos
+├── Template.java       # Código base com FastScanner, constantes e I/O
 └── README.md
 ```
 
@@ -111,16 +108,29 @@ notepad ~/.bashrc
 
 Adicione o seguinte conteúdo ao final do arquivo:
 ```bash
-# Gerar arquivos para um contest
+# Gerar arquivos para plataformas (Codeforces, Beecrowd, AtCoder, Genérico)
 cf() {
-    python cf.py "$@"
+    python cli.py cf "$@"
+}
+
+bee() {
+    python cli.py bee "$@"
+}
+
+atc() {
+    python cli.py atc "$@"
+}
+
+gen() {
+    python cli.py gen "$@"
 }
 
 # Compilar e executar uma solução
 runj() {
     if [ -z "$1" ]; then
-        echo "Uso: runj cf/<contest>/<letra> [input_file]"
-        echo "Exemplo: runj cf/1199/F"
+        echo "Uso: runj <caminho_sem_extensao_ou_com_java> [input_file]"
+        echo "Exemplo: runj cf/2044/A"
+        echo "Exemplo: runj gen/tests/ConvexHull"
         return 1
     fi
 
@@ -154,45 +164,114 @@ source ~/.bashrc
 
 ## Como Usar
 
-### 1. Criar novo contest
-Para gerar os arquivos padrão (de **A** até **F**):
-```bash
-cf 2044
-```
+### 1. Criar estrutura de arquivos por plataforma
 
-Para gerar apenas problemas específicos:
-```bash
-cf 2044 A B C
-```
+O projeto aceita comandos dedicados para cada plataforma (`cf`, `bee`, `atc` e `gen`):
 
-O script lê o arquivo `template.java`, cria a pasta `cf/2044/` e gera cada arquivo nomeado com a respectiva classe (`public class A` em `A.java`, etc.).
+#### **Codeforces (`cf`)**
+* Gerar problemas padrão de um contest (de **A** até **F**):
+  ```bash
+  cf 2044
+  ```
+  *(Cria `cf/2044/A.java` até `F.java` com as classes `public class A`, etc.)*
+
+* Gerar problemas específicos:
+  ```bash
+  cf 2044 A B C
+  ```
+
+---
+
+#### **AtCoder (`atc`)**
+* Gerar problemas padrão de um contest (de **A** até **F**):
+  ```bash
+  atc abc300
+  ```
+  *(Cria `atc/abc300/A.java` até `F.java`)*
+
+* Gerar problemas específicos:
+  ```bash
+  atc abc300 A B C
+  ```
+
+---
+
+#### **Beecrowd (`bee`)**
+* Criar pasta e arquivo diretamente pelo ID do problema:
+  ```bash
+  bee 1001
+  ```
+  *(Cria `bee/1001/1001.java` com a classe `public class _1001` pronta para execução local)*
+
+* Agrupar vários problemas por categoria/tópico:
+  ```bash
+  bee math 1028 1161 1163
+  ```
+  *(Cria `bee/math/1028.java`, `bee/math/1161.java`, etc.)*
+
+---
+
+#### **Genérico / Testes / Algoritmos (`gen`)**
+* Criar arquivos avulsos de estudo, algoritmos ou testes em subpastas:
+  ```bash
+  gen tests ConvexHull
+  ```
+  *(Cria `gen/tests/ConvexHull.java`)*
+
+* Criar múltiplos tópicos de uma vez:
+  ```bash
+  gen graphs Dijkstra BFS DFS
+  ```
+  *(Cria `gen/graphs/Dijkstra.java`, `gen/graphs/BFS.java`, etc.)*
 
 ---
 
 ### 2. Executar soluções pelo terminal (`runj`)
 
-* **Execução interativa (digitando pelo terminal):**
+O comando `runj` funciona de forma transparente para **qualquer pasta** do projeto:
+
+* **Codeforces:**
   ```bash
   runj cf/2044/A
   ```
 
-* **Execução passando arquivo de entrada:**
+* **AtCoder:**
+  ```bash
+  runj atc/abc300/A
+  ```
+
+* **Beecrowd:**
+  ```bash
+  runj bee/1001/1001
+  runj bee/math/1028
+  ```
+
+* **Genérico:**
+  ```bash
+  runj gen/tests/ConvexHull
+  runj gen/graphs/Dijkstra
+  ```
+
+* **Execução passando arquivo de entrada (redirecionamento de input):**
   ```bash
   runj cf/2044/A in.txt
+  runj bee/1001/1001 in.txt
   ```
 
 ---
 
 ### 3. Debugar no VS Code (`F5`)
 
-1. Abra o arquivo do problema (ex: `cf/2044/A.java`).
+1. Abra qualquer arquivo `.java` (seja em `cf/`, `atc/`, `bee/` ou `gen/`).
 2. Clique ao lado esquerdo da numeração da linha para marcar um **breakpoint** (ponto vermelho).
 3. Pressione **`F5`**.
 4. A compilação prévia será acionada automaticamente e a execução pausará na linha marcada.
-5. Use `F10` para avançar linha a linha e inspecione as variáveis locais no painel à esquerda. Se o código solicitar entrada de dados, digite diretamente no terminal integrado que abrirá na parte inferior.
+5. Use `F10` para avançar linha a linha e inspecione as variáveis locais no painel à esquerda. Se o código solicitar entrada de dados, digite diretamente no terminal integrado.
 
 ---
 
-## Submissão no Codeforces
+## Submissão nas Plataformas
 
-Como os arquivos **não possuem declaração de `package`**, basta copiar e colar todo o código do arquivo `.java` (ou fazer o upload direto do arquivo) no formulário de submissão do Codeforces.
+Como os arquivos **não possuem declaração de `package`**, você pode submeter o código diretamente:
+* **Codeforces / AtCoder:** Copie e cole todo o código do arquivo `.java` correspondente.
+* **Beecrowd:** Lembre-se de renomear a classe principal para `public class Main` no editor do Beecrowd caso esteja submetendo em Java.
