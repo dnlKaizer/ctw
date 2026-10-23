@@ -3,7 +3,11 @@
         "**/*.class": true
     },
     "java.project.sourcePaths": [
-        "cf"
+        "cf",
+        "bee",
+        "atc",
+        "gen"
     ],
+    "java.debug.settings.onBuildFailureProceed": true,
     "java.errors.incompleteClasspath.severity": "ignore"
 }

@@ -60,12 +60,11 @@ def main():
     if platform in {"cf", "atc"}:
         problems = [p.upper() for p in raw_problems] if raw_problems else DEFAULT_PROBLEMS
     elif platform == "bee":
-        # Se passou 'bee 1001', o group_id pode ser uma categoria ou o próprio id do problema
+        # Se passou 'bee 1001', cria bee/1001/Main.java (padrão do Beecrowd)
         if raw_problems:
             problems = raw_problems
         else:
-            # Ex: bee 1001 -> cria bee/1001/1001.java ou bee/problems/1001.java
-            problems = [group_id]
+            problems = ["Main"]
     else:  # gen
         if raw_problems:
             problems = raw_problems

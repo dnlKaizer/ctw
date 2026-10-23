@@ -42,7 +42,15 @@ O projeto permite gerar automaticamente a estrutura de pastas para cada contest,
 {
   "files.exclude": {
     "**/*.class": true
-  }
+  },
+  "java.project.sourcePaths": [
+    "cf",
+    "bee",
+    "atc",
+    "gen"
+  ],
+  "java.debug.settings.onBuildFailureProceed": true,
+  "java.errors.incompleteClasspath.severity": "ignore"
 }
 ```
 
@@ -128,17 +136,39 @@ gen() {
 # Compilar e executar uma solução
 runj() {
     if [ -z "$1" ]; then
-        echo "Uso: runj <caminho_sem_extensao_ou_com_java> [input_file]"
+        echo "Uso: runj <caminho_ou_pasta> [input_file]"
         echo "Exemplo: runj cf/2044/A"
-        echo "Exemplo: runj gen/tests/ConvexHull"
+        echo "Exemplo: runj bee/1938 in1.txt"
+        echo "Exemplo: runj bee/1938/Main in1.txt"
         return 1
     fi
 
-    local TARGET="${1%.java}"
-    local FILE="${TARGET}.java"
+    local TARGET="${1%/}"
+    TARGET="${TARGET%.java}"
+    local FILE=""
 
-    if [ ! -f "$FILE" ]; then
-        echo "Erro: '$FILE' não encontrado!"
+    if [ -f "${TARGET}.java" ]; then
+        FILE="${TARGET}.java"
+    elif [ -d "$TARGET" ]; then
+        if [ -f "$TARGET/Main.java" ]; then
+            FILE="$TARGET/Main.java"
+            TARGET="$TARGET/Main"
+        elif [ -f "$TARGET/$(basename "$TARGET").java" ]; then
+            FILE="$TARGET/$(basename "$TARGET").java"
+            TARGET="$TARGET/$(basename "$TARGET")"
+        else
+            for f in "$TARGET"/*.java; do
+                if [ -f "$f" ]; then
+                    FILE="$f"
+                    TARGET="${f%.java}"
+                    break
+                fi
+            done
+        fi
+    fi
+
+    if [ -z "$FILE" ] || [ ! -f "$FILE" ]; then
+        echo "Erro: Arquivo .java não encontrado para '$1'!"
         return 1
     fi
 
@@ -147,8 +177,24 @@ runj() {
 
     javac -encoding UTF-8 -g -d "$DIR" "$FILE" || return 1
 
-    if [ -n "$2" ] && [ -f "$2" ]; then
-        java -cp "$DIR" "$CLASS_NAME" < "$2"
+    local INPUT_FILE=""
+    if [ -n "$2" ]; then
+        if [ -f "$2" ]; then
+            INPUT_FILE="$2"
+        elif [ -f "$DIR/$2" ]; then
+            INPUT_FILE="$DIR/$2"
+        elif [ -f "${2}.txt" ]; then
+            INPUT_FILE="${2}.txt"
+        elif [ -f "$DIR/${2}.txt" ]; then
+            INPUT_FILE="$DIR/${2}.txt"
+        else
+            echo "Erro: Arquivo de entrada '$2' não encontrado (nem em ./ nem em $DIR/)!"
+            return 1
+        fi
+    fi
+
+    if [ -n "$INPUT_FILE" ]; then
+        java -cp "$DIR" "$CLASS_NAME" < "$INPUT_FILE"
     else
         java -cp "$DIR" "$CLASS_NAME"
     fi
@@ -197,11 +243,11 @@ O projeto aceita comandos dedicados para cada plataforma (`cf`, `bee`, `atc` e `
 ---
 
 #### **Beecrowd (`bee`)**
-* Criar pasta e arquivo diretamente pelo ID do problema:
+* Criar pasta e arquivo `Main.java` diretamente pelo ID do problema:
   ```bash
-  bee 1001
+  bee 1938
   ```
-  *(Cria `bee/1001/1001.java` com a classe `public class _1001` pronta para execução local)*
+  *(Cria `bee/1938/Main.java` com a classe `public class Main`, já pronta para submissão no Beecrowd)*
 
 * Agrupar vários problemas por categoria/tópico:
   ```bash
@@ -242,20 +288,23 @@ O comando `runj` funciona de forma transparente para **qualquer pasta** do proje
 
 * **Beecrowd:**
   ```bash
-  runj bee/1001/1001
-  runj bee/math/1028
+  runj bee/1938
+  runj bee/1938/Main
   ```
 
 * **Genérico:**
   ```bash
-  runj gen/tests/ConvexHull
+  runj gen/geometry/ConvexHull
   runj gen/graphs/Dijkstra
   ```
 
 * **Execução passando arquivo de entrada (redirecionamento de input):**
+  Pode passar o caminho da pasta ou do arquivo, e o nome do arquivo de entrada (com ou sem `.txt`):
   ```bash
-  runj cf/2044/A in.txt
-  runj bee/1001/1001 in.txt
+  runj bee/1938 in1.txt               # executa bee/1938/Main.java com bee/1938/in1.txt
+  runj bee/1938 in1                   # também encontra in1.txt automaticamente
+  runj bee/1938/Main in1.txt          # especificando a classe explicitamente
+  runj cf/2044/A in.txt               # busca no diretório atual ou dentro de cf/2044/in.txt
   ```
 
 ---
