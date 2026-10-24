@@ -11,8 +11,9 @@ O projeto permite gerar automaticamente a estrutura de pastas para cada contest,
 ```text
 .
 ├── .vscode/
+│   ├── java.prefs      # Preferências do compilador Java (ignorar avisos de type safety)
 │   ├── launch.json     # Configuração do debugger (F5)
-│   ├── settings.json   # Ocultação visual dos binários .class
+│   ├── settings.json   # Ocultação visual dos binários .class e sourcePaths
 │   └── tasks.json      # Compilação automática antes do debug
 ├── cf/                 # Problemas do Codeforces
 ├── bee/                # Problemas do Beecrowd
@@ -47,11 +48,19 @@ O projeto permite gerar automaticamente a estrutura de pastas para cada contest,
     "cf",
     "bee",
     "atc",
-    "gen"
+    "gen/geometry"
   ],
+  "java.settings.url": ".vscode/java.prefs",
   "java.debug.settings.onBuildFailureProceed": true,
   "java.errors.incompleteClasspath.severity": "ignore"
 }
+```
+
+#### `.vscode/java.prefs`
+```properties
+eclipse.preferences.version=1
+org.eclipse.jdt.core.compiler.problem.uncheckedTypeOperation=ignore
+org.eclipse.jdt.core.compiler.problem.rawTypeReference=ignore
 ```
 
 #### `.vscode/tasks.json`

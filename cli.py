@@ -1,9 +1,28 @@
 import sys
 import re
+import json
 from pathlib import Path
 
 DEFAULT_PROBLEMS = ["A", "B", "C", "D", "E", "F"]
 VALID_PLATFORMS = {"cf", "bee", "atc", "gen"}
+
+def update_vscode_source_paths(base_dir: Path, rel_path: str):
+    """Garante que a subpasta esteja registrada no java.project.sourcePaths para evitar erros de package."""
+    settings_path = base_dir / ".vscode" / "settings.json"
+    if not settings_path.is_file():
+        return
+
+    try:
+        data = json.loads(settings_path.read_text(encoding="utf-8"))
+        source_paths = data.get("java.project.sourcePaths", [])
+        if "gen" in source_paths:
+            source_paths.remove("gen")
+        if rel_path not in source_paths:
+            source_paths.append(rel_path)
+            data["java.project.sourcePaths"] = source_paths
+            settings_path.write_text(json.dumps(data, indent=4, ensure_ascii=False) + "\n", encoding="utf-8")
+    except Exception:
+        pass
 
 def sanitize_identifier(name: str) -> str:
     """Garante um identificador Java válido a partir de um nome de arquivo ou problema."""
@@ -73,6 +92,9 @@ def main():
 
     target_dir = base_dir / platform / group_id
     target_dir.mkdir(parents=True, exist_ok=True)
+
+    if platform == "gen" or (platform == "bee" and not group_id.isdigit()):
+        update_vscode_source_paths(base_dir, f"{platform}/{group_id}")
 
     for p in problems:
         class_name = sanitize_identifier(p)
