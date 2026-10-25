@@ -2,7 +2,7 @@
 
 Ambiente local para resolução, execução e depuração de problemas do Codeforces em Java, configurado para o VS Code e Git Bash no Windows.
 
-O projeto permite gerar automaticamente a estrutura de pastas para cada contest, compilar e executar direto pelo terminal (com suporte a arquivos de teste) e debugar via `F5` com breakpoints sem conflito de pacotes (`package`).
+O projeto permite gerar automaticamente a estrutura de pastas para cada contest, compilar e executar direto pelo terminal (com suporte a arquivos de teste) ou via atalho `F5`, e debugar via `Ctrl + F5` com breakpoints sem conflito de pacotes (`package`).
 
 ---
 
@@ -12,9 +12,9 @@ O projeto permite gerar automaticamente a estrutura de pastas para cada contest,
 .
 ├── .vscode/
 │   ├── java.prefs      # Preferências do compilador Java (ignorar avisos de type safety)
-│   ├── launch.json     # Configuração do debugger (F5)
+│   ├── launch.json     # Configuração do debugger (Ctrl + F5)
 │   ├── settings.json   # Ocultação visual dos binários .class e sourcePaths
-│   └── tasks.json      # Compilação automática antes do debug
+│   └── tasks.json      # Tasks de compilação (build) e execução rápida (F5)
 ├── cf/                 # Problemas do Codeforces
 ├── bee/                # Problemas do Beecrowd
 ├── atc/                # Problemas do AtCoder
@@ -88,6 +88,28 @@ org.eclipse.jdt.core.compiler.problem.rawTypeReference=ignore
         "reveal": "silent"
       },
       "problemMatcher": "$javac"
+    },
+    {
+      "label": "run-current-file",
+      "type": "shell",
+      "command": "runj",
+      "args": [
+        "${fileBasename}"
+      ],
+      "options": {
+        "cwd": "${fileDirname}"
+      },
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "focus": true,
+        "clear": true
+      },
+      "problemMatcher": []
     }
   ]
 }
@@ -114,6 +136,26 @@ org.eclipse.jdt.core.compiler.problem.rawTypeReference=ignore
     }
   ]
 }
+```
+
+#### Atalhos de Teclado do VS Code (`keybindings.json`)
+Para usar **`F5`** como Run (`runj`) e **`Ctrl + F5`** como Debug:
+1. Pressione `Ctrl + Shift + P` e selecione **`Preferences: Open Keyboard Shortcuts (JSON)`**.
+2. Adicione os atalhos no final do array `[ ... ]`:
+```json
+[
+  {
+    "key": "f5",
+    "command": "workbench.action.tasks.runTask",
+    "args": "run-current-file",
+    "when": "!inDebugMode"
+  },
+  {
+    "key": "ctrl+f5",
+    "command": "workbench.action.debug.start",
+    "when": "!inDebugMode"
+  }
+]
 ```
 
 ### 3. Configurar atalhos no Git Bash (`~/.bashrc`)
@@ -318,13 +360,19 @@ O comando `runj` funciona de forma transparente para **qualquer pasta** do proje
 
 ---
 
-### 3. Debugar no VS Code (`F5`)
+### 3. Executar (`F5`) e Debugar (`Ctrl + F5`) no VS Code
 
+#### **Execução Rápida (`F5`)**
+1. Com o arquivo `.java` aberto, pressione **`F5`**.
+2. A task `run-current-file` executará o comando `runj` automaticamente para o arquivo atual, limpará a tela e focará o cursor no terminal integrado.
+3. Cole (`Ctrl + V`) ou digite o caso de teste diretamente no terminal.
+
+#### **Debug com Breakpoints (`Ctrl + F5`)**
 1. Abra qualquer arquivo `.java` (seja em `cf/`, `atc/`, `bee/` ou `gen/`).
 2. Clique ao lado esquerdo da numeração da linha para marcar um **breakpoint** (ponto vermelho).
-3. Pressione **`F5`**.
+3. Pressione **`Ctrl + F5`**.
 4. A compilação prévia será acionada automaticamente e a execução pausará na linha marcada.
-5. Use `F10` para avançar linha a linha e inspecione as variáveis locais no painel à esquerda. Se o código solicitar entrada de dados, digite diretamente no terminal integrado.
+5. Use `F10` para avançar linha a linha (ou `F5` para continuar até o próximo breakpoint) e inspecione as variáveis locais no painel à esquerda. Se o código solicitar entrada de dados, digite diretamente no terminal integrado.
 
 ---
 
