@@ -1,8 +1,8 @@
 # Codeforces Training Workflow
 
-Ambiente local para resolução, execução e depuração de problemas do Codeforces em Java, configurado para o VS Code e Git Bash no Windows.
+Ambiente local para resolução, execução e depuração de problemas de programação competitiva em Java, configurado para o VS Code e Git Bash no Windows.
 
-O projeto permite gerar automaticamente a estrutura de pastas para cada contest, compilar e executar direto pelo terminal (com suporte a arquivos de teste) ou via atalho `F5`, e debugar via `Ctrl + F5` com breakpoints sem conflito de pacotes (`package`).
+O projeto permite gerar automaticamente a estrutura de pastas para cada contest/problema em `src/`, compilar os binários `.class` de forma espelhada e isolada em `bin/`, executar direto pelo terminal (com suporte a arquivos de teste) ou via atalho `F5`, e debugar via `Ctrl + F5` com breakpoints sem conflito de pacotes (`package`).
 
 ---
 
@@ -13,18 +13,20 @@ O projeto permite gerar automaticamente a estrutura de pastas para cada contest,
 ├── .vscode/
 │   ├── java.prefs      # Preferências do compilador Java (ignorar avisos de type safety)
 │   ├── launch.json     # Configuração do debugger (Ctrl + F5)
-│   ├── settings.json   # Ocultação visual dos binários .class e sourcePaths
-│   └── tasks.json      # Tasks de compilação (build) e execução rápida (F5)
-├── cf/                 # Problemas do Codeforces
-├── bee/                # Problemas do Beecrowd
-├── atc/                # Problemas do AtCoder
-├── gen/                # Testes genéricos e algoritmos
-├── cli.py              # Script unificado de geração dos arquivos
+│   ├── settings.json   # Configuração de outputPath (bin) e sourcePaths (src/...)
+│   └── tasks.json      # Tasks de compilação espelhada em bin/ e execução rápida (F5)
+├── src/                # Código-fonte (.java) organizado por plataforma
+│   ├── cf/             # Problemas do Codeforces (ex: src/cf/2044/A.java)
+│   ├── bee/            # Problemas do Beecrowd (ex: src/bee/1938/Main.java)
+│   ├── atc/            # Problemas do AtCoder (ex: src/atc/abc300/A.java)
+│   └── gen/            # Testes genéricos e algoritmos (ex: src/gen/geometry/ConvexHull.java)
+├── bin/                # Bytecodes compilados (.class) espelhando a estrutura de src/ (ignorado pelo Git)
+├── cli.py              # Script unificado de geração dos arquivos e registro de sourcePaths
 ├── Template.java       # Código base com FastScanner, constantes e I/O
 └── README.md
 ```
 
-> **Nota:** Os arquivos compilados (`.class`) são gerados no mesmo diretório do arquivo `.java`, mas ficam ocultos na árvore de arquivos do VS Code para manter o ambiente limpo.
+> **Nota:** Os arquivos compilados (`.class`, incluindo classes internas como `FastScanner` ou `Point`) são gerados de forma espelhada dentro de `bin/<caminho>/` (por exemplo, `src/cf/2044/A.java` gera `bin/cf/2044/A.class`). Cada subpasta de problema é adicionada automaticamente ao `java.project.sourcePaths` do VS Code para funcionar no pacote padrão (*default package*) sem necessidade de declarar `package`.
 
 ---
 
@@ -44,11 +46,12 @@ O projeto permite gerar automaticamente a estrutura de pastas para cada contest,
   "files.exclude": {
     "**/*.class": true
   },
+  "java.project.outputPath": "bin",
   "java.project.sourcePaths": [
-    "cf",
-    "bee",
-    "atc",
-    "gen/geometry"
+    "src/cf",
+    "src/bee",
+    "src/atc",
+    "src/gen/geometry"
   ],
   "java.settings.url": ".vscode/java.prefs",
   "java.debug.settings.onBuildFailureProceed": true,
@@ -71,17 +74,9 @@ org.eclipse.jdt.core.compiler.problem.rawTypeReference=ignore
     {
       "label": "build-current-file",
       "type": "shell",
-      "command": "javac",
-      "args": [
-        "-encoding",
-        "UTF-8",
-        "-g",
-        "-d",
-        ".",
-        "${fileBasename}"
-      ],
+      "command": "REL_DIR=$(cygpath -m '${relativeFileDirname}'); REL_DIR=${REL_DIR#src/}; FILE=$(cygpath -m '${file}'); OUT_DIR=bin/$REL_DIR; mkdir -p $OUT_DIR bin/_debug && rm -f bin/_debug/*.class && javac -encoding UTF-8 -g -d $OUT_DIR $FILE && cp $OUT_DIR/*.class bin/_debug/",
       "options": {
-        "cwd": "${fileDirname}"
+        "cwd": "${workspaceFolder}"
       },
       "group": "build",
       "presentation": {
@@ -92,12 +87,9 @@ org.eclipse.jdt.core.compiler.problem.rawTypeReference=ignore
     {
       "label": "run-current-file",
       "type": "shell",
-      "command": "runj",
-      "args": [
-        "${fileBasename}"
-      ],
+      "command": "runj '${file}'",
       "options": {
-        "cwd": "${fileDirname}"
+        "cwd": "${workspaceFolder}"
       },
       "group": {
         "kind": "test",
@@ -126,7 +118,7 @@ org.eclipse.jdt.core.compiler.problem.rawTypeReference=ignore
       "request": "launch",
       "mainClass": "${fileBasenameNoExtension}",
       "classPaths": [
-        "${fileDirname}"
+        "${workspaceFolder}/bin/_debug"
       ],
       "sourcePaths": [
         "${fileDirname}"
@@ -184,19 +176,27 @@ gen() {
     python cli.py gen "$@"
 }
 
-# Compilar e executar uma solução
+# Compilar (em bin/<caminho_relativo>) e executar uma solução
 runj() {
     if [ -z "$1" ]; then
         echo "Uso: runj <caminho_ou_pasta> [input_file]"
         echo "Exemplo: runj cf/2044/A"
+        echo "Exemplo: runj src/cf/2044/A"
         echo "Exemplo: runj bee/1938 in1.txt"
         echo "Exemplo: runj bee/1938/Main in1.txt"
         return 1
     fi
 
-    local TARGET="${1%/}"
+    local TARGET=$(cygpath -m "$1")
+    TARGET="${TARGET%/}"
     TARGET="${TARGET%.java}"
     local FILE=""
+
+    if [ ! -f "${TARGET}.java" ] && [ ! -d "$TARGET" ]; then
+        if [ -f "src/${TARGET}.java" ] || [ -d "src/$TARGET" ]; then
+            TARGET="src/$TARGET"
+        fi
+    fi
 
     if [ -f "${TARGET}.java" ]; then
         FILE="${TARGET}.java"
@@ -223,31 +223,43 @@ runj() {
         return 1
     fi
 
-    local DIR=$(dirname "$FILE")
+    local SRC_DIR=$(dirname "$FILE")
     local CLASS_NAME=$(basename "$TARGET")
 
-    javac -encoding UTF-8 -g -d "$DIR" "$FILE" || return 1
+    local REL_DIR="$SRC_DIR"
+    if [[ "$REL_DIR" == */src/* ]]; then
+        REL_DIR="${REL_DIR#*src/}"
+    elif [[ "$REL_DIR" == src/* ]]; then
+        REL_DIR="${REL_DIR#src/}"
+    elif [[ "$REL_DIR" == "src" ]]; then
+        REL_DIR=""
+    fi
+
+    local OUT_DIR="bin${REL_DIR:+/$REL_DIR}"
+    mkdir -p "$OUT_DIR"
+
+    javac -encoding UTF-8 -g -d "$OUT_DIR" "$FILE" || return 1
 
     local INPUT_FILE=""
     if [ -n "$2" ]; then
         if [ -f "$2" ]; then
             INPUT_FILE="$2"
-        elif [ -f "$DIR/$2" ]; then
-            INPUT_FILE="$DIR/$2"
+        elif [ -f "$SRC_DIR/$2" ]; then
+            INPUT_FILE="$SRC_DIR/$2"
         elif [ -f "${2}.txt" ]; then
             INPUT_FILE="${2}.txt"
-        elif [ -f "$DIR/${2}.txt" ]; then
-            INPUT_FILE="$DIR/${2}.txt"
+        elif [ -f "$SRC_DIR/${2}.txt" ]; then
+            INPUT_FILE="$SRC_DIR/${2}.txt"
         else
-            echo "Erro: Arquivo de entrada '$2' não encontrado (nem em ./ nem em $DIR/)!"
+            echo "Erro: Arquivo de entrada '$2' não encontrado (nem em ./ nem em $SRC_DIR/)!"
             return 1
         fi
     fi
 
     if [ -n "$INPUT_FILE" ]; then
-        java -cp "$DIR" "$CLASS_NAME" < "$INPUT_FILE"
+        java -cp "$OUT_DIR" "$CLASS_NAME" < "$INPUT_FILE"
     else
-        java -cp "$DIR" "$CLASS_NAME"
+        java -cp "$OUT_DIR" "$CLASS_NAME"
     fi
 }
 ```
@@ -263,14 +275,14 @@ source ~/.bashrc
 
 ### 1. Criar estrutura de arquivos por plataforma
 
-O projeto aceita comandos dedicados para cada plataforma (`cf`, `bee`, `atc` e `gen`):
+O projeto aceita comandos dedicados para cada plataforma (`cf`, `bee`, `atc` e `gen`), criando os arquivos dentro de `src/` e registrando a pasta automaticamente no `.vscode/settings.json`:
 
 #### **Codeforces (`cf`)**
 * Gerar problemas padrão de um contest (de **A** até **F**):
   ```bash
   cf 2044
   ```
-  *(Cria `cf/2044/A.java` até `F.java` com as classes `public class A`, etc.)*
+  *(Cria `src/cf/2044/A.java` até `F.java` com as classes `public class A`, etc.)*
 
 * Gerar problemas específicos:
   ```bash
@@ -284,7 +296,7 @@ O projeto aceita comandos dedicados para cada plataforma (`cf`, `bee`, `atc` e `
   ```bash
   atc abc300
   ```
-  *(Cria `atc/abc300/A.java` até `F.java`)*
+  *(Cria `src/atc/abc300/A.java` até `F.java`)*
 
 * Gerar problemas específicos:
   ```bash
@@ -298,13 +310,13 @@ O projeto aceita comandos dedicados para cada plataforma (`cf`, `bee`, `atc` e `
   ```bash
   bee 1938
   ```
-  *(Cria `bee/1938/Main.java` com a classe `public class Main`, já pronta para submissão no Beecrowd)*
+  *(Cria `src/bee/1938/Main.java` com a classe `public class Main`, já pronta para submissão no Beecrowd)*
 
 * Agrupar vários problemas por categoria/tópico:
   ```bash
   bee math 1028 1161 1163
   ```
-  *(Cria `bee/math/1028.java`, `bee/math/1161.java`, etc.)*
+  *(Cria `src/bee/math/1028.java`, `src/bee/math/1161.java`, etc.)*
 
 ---
 
@@ -313,49 +325,51 @@ O projeto aceita comandos dedicados para cada plataforma (`cf`, `bee`, `atc` e `
   ```bash
   gen tests ConvexHull
   ```
-  *(Cria `gen/tests/ConvexHull.java`)*
+  *(Cria `src/gen/tests/ConvexHull.java`)*
 
 * Criar múltiplos tópicos de uma vez:
   ```bash
   gen graphs Dijkstra BFS DFS
   ```
-  *(Cria `gen/graphs/Dijkstra.java`, `gen/graphs/BFS.java`, etc.)*
+  *(Cria `src/gen/graphs/Dijkstra.java`, `src/gen/graphs/BFS.java`, etc.)*
 
 ---
 
 ### 2. Executar soluções pelo terminal (`runj`)
 
-O comando `runj` funciona de forma transparente para **qualquer pasta** do projeto:
+O comando `runj` aceita caminhos **com ou sem** o prefixo `src/`, compila os `.class` no diretório espelhado dentro de `bin/` e executa a solução:
 
 * **Codeforces:**
   ```bash
   runj cf/2044/A
+  runj src/cf/2044/A
   ```
 
 * **AtCoder:**
   ```bash
   runj atc/abc300/A
+  runj src/atc/abc300/A
   ```
 
 * **Beecrowd:**
   ```bash
   runj bee/1938
-  runj bee/1938/Main
+  runj src/bee/1938/Main
   ```
 
 * **Genérico:**
   ```bash
   runj gen/geometry/ConvexHull
-  runj gen/graphs/Dijkstra
+  runj src/gen/graphs/Dijkstra
   ```
 
 * **Execução passando arquivo de entrada (redirecionamento de input):**
   Pode passar o caminho da pasta ou do arquivo, e o nome do arquivo de entrada (com ou sem `.txt`):
   ```bash
-  runj bee/1938 in1.txt               # executa bee/1938/Main.java com bee/1938/in1.txt
+  runj bee/1938 in1.txt               # executa src/bee/1938/Main.java com src/bee/1938/in1.txt
   runj bee/1938 in1                   # também encontra in1.txt automaticamente
-  runj bee/1938/Main in1.txt          # especificando a classe explicitamente
-  runj cf/2044/A in.txt               # busca no diretório atual ou dentro de cf/2044/in.txt
+  runj src/bee/1938/Main in1.txt      # especificando o caminho com src/ e a classe explicitamente
+  runj cf/2044/A in.txt               # busca no diretório atual ou dentro de src/cf/2044/in.txt
   ```
 
 ---
@@ -363,21 +377,21 @@ O comando `runj` funciona de forma transparente para **qualquer pasta** do proje
 ### 3. Executar (`F5`) e Debugar (`Ctrl + F5`) no VS Code
 
 #### **Execução Rápida (`F5`)**
-1. Com o arquivo `.java` aberto, pressione **`F5`**.
-2. A task `run-current-file` executará o comando `runj` automaticamente para o arquivo atual, limpará a tela e focará o cursor no terminal integrado.
+1. Com o arquivo `.java` aberto (dentro de `src/`), pressione **`F5`**.
+2. A task `run-current-file` executará o comando `runj` automaticamente para o arquivo atual (compilando em `bin/<caminho_relativo>`), limpará a tela e focará o cursor no terminal integrado.
 3. Cole (`Ctrl + V`) ou digite o caso de teste diretamente no terminal.
 
 #### **Debug com Breakpoints (`Ctrl + F5`)**
-1. Abra qualquer arquivo `.java` (seja em `cf/`, `atc/`, `bee/` ou `gen/`).
+1. Abra qualquer arquivo `.java` em `src/` (seja em `src/cf/`, `src/atc/`, `src/bee/` ou `src/gen/`).
 2. Clique ao lado esquerdo da numeração da linha para marcar um **breakpoint** (ponto vermelho).
 3. Pressione **`Ctrl + F5`**.
-4. A compilação prévia será acionada automaticamente e a execução pausará na linha marcada.
+4. A task `build-current-file` compilará os `.class` para a pasta espelhada em `bin/<caminho_relativo>` (e atualizará `bin/_debug` para isolamento de classpath) e a execução pausará na linha marcada.
 5. Use `F10` para avançar linha a linha (ou `F5` para continuar até o próximo breakpoint) e inspecione as variáveis locais no painel à esquerda. Se o código solicitar entrada de dados, digite diretamente no terminal integrado.
 
 ---
 
-## Submissão nas Plataformas
+### 4. Submissão nas Plataformas
 
 Como os arquivos **não possuem declaração de `package`**, você pode submeter o código diretamente:
-* **Codeforces / AtCoder:** Copie e cole todo o código do arquivo `.java` correspondente.
-* **Beecrowd:** Lembre-se de renomear a classe principal para `public class Main` no editor do Beecrowd caso esteja submetendo em Java.
+* **Codeforces / AtCoder / CSES:** Copie e cole todo o código do arquivo `.java` correspondente.
+* **Beecrowd:** Lembre-se de garantir que a classe principal se chame `public class Main` no editor do Beecrowd caso esteja submetendo em Java.

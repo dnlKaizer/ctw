@@ -4,17 +4,9 @@
         {
             "label": "build-current-file",
             "type": "shell",
-            "command": "javac",
-            "args": [
-                "-encoding",
-                "UTF-8",
-                "-g",
-                "-d",
-                ".",
-                "${fileBasename}"
-            ],
+            "command": "REL_DIR=$(cygpath -m '${relativeFileDirname}'); REL_DIR=${REL_DIR#src/}; FILE=$(cygpath -m '${file}'); OUT_DIR=bin/$REL_DIR; mkdir -p $OUT_DIR bin/_debug && rm -f bin/_debug/*.class && javac -encoding UTF-8 -g -d $OUT_DIR $FILE && cp $OUT_DIR/*.class bin/_debug/",
             "options": {
-                "cwd": "${fileDirname}"
+                "cwd": "${workspaceFolder}"
             },
             "group": "build",
             "presentation": {
@@ -25,12 +17,9 @@
         {
             "label": "run-current-file",
             "type": "shell",
-            "command": "runj",
-            "args": [
-                "${fileBasename}"
-            ],
+            "command": "runj '${file}'",
             "options": {
-                "cwd": "${fileDirname}"
+                "cwd": "${workspaceFolder}"
             },
             "group": {
                 "kind": "test",

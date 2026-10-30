@@ -7,7 +7,7 @@
             "request": "launch",
             "mainClass": "${fileBasenameNoExtension}",
             "classPaths": [
-                "${fileDirname}"
+                "${workspaceFolder}/bin/_debug"
             ],
             "sourcePaths": [
                 "${fileDirname}"

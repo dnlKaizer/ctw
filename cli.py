@@ -15,8 +15,9 @@ def update_vscode_source_paths(base_dir: Path, rel_path: str):
     try:
         data = json.loads(settings_path.read_text(encoding="utf-8"))
         source_paths = data.get("java.project.sourcePaths", [])
-        if "gen" in source_paths:
-            source_paths.remove("gen")
+        for legacy in ("gen", "src/gen"):
+            if legacy in source_paths:
+                source_paths.remove(legacy)
         if rel_path not in source_paths:
             source_paths.append(rel_path)
             data["java.project.sourcePaths"] = source_paths
@@ -90,11 +91,11 @@ def main():
         else:
             problems = [group_id]
 
-    target_dir = base_dir / platform / group_id
+    target_dir = base_dir / "src" / platform / group_id
     target_dir.mkdir(parents=True, exist_ok=True)
 
     if platform == "gen" or (platform == "bee" and not group_id.isdigit()):
-        update_vscode_source_paths(base_dir, f"{platform}/{group_id}")
+        update_vscode_source_paths(base_dir, f"src/{platform}/{group_id}")
 
     for p in problems:
         class_name = sanitize_identifier(p)

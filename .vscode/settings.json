@@ -1,13 +1,10 @@
 {
-    "files.exclude": {
-        "**/*.class": true
-    },
+    "java.project.outputPath": "bin",
     "java.project.sourcePaths": [
-        "cf",
-        "bee",
-        "atc",
-        "gen/geometry",
-        "gen/dp"
+        "src/cf",
+        "src/bee",
+        "src/atc",
+        "src/gen/geometry"
     ],
     "java.settings.url": ".vscode/java.prefs",
     "java.debug.settings.onBuildFailureProceed": true,
