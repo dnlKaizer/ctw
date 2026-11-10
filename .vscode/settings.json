@@ -1,12 +1,10 @@
 {
-    "java.project.outputPath": "bin",
-    "java.project.sourcePaths": [
-        "src/cf",
-        "src/bee",
-        "src/atc",
-        "src/gen/geometry"
-    ],
-    "java.settings.url": ".vscode/java.prefs",
-    "java.debug.settings.onBuildFailureProceed": true,
-    "java.errors.incompleteClasspath.severity": "ignore"
+    "files.exclude": {
+        "**/*.exe": true,
+        "**/*.o": true,
+        "**/*.class": true
+    },
+    "C_Cpp.default.compilerPath": "C:/msys64/ucrt64/bin/g++.exe",
+    "C_Cpp.default.cppStandard": "c++20",
+    "C_Cpp.default.intelliSenseMode": "windows-gcc-x64"
 }

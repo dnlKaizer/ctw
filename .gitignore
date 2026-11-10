@@ -1,4 +1,6 @@
 lib/
 bin/
 *.class
+*.exe
+*.o
 __pycache__/
