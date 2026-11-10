@@ -281,7 +281,15 @@ source ~/.bashrc
 
 ### 1. Criar estrutura de arquivos por plataforma
 
-O projeto aceita comandos dedicados para cada plataforma (`cf`, `bee`, `atc` e `gen`), criando uma pasta isolada para cada problema com `main.cpp` (vazio) e `editorial.md` (preenchido a partir do `template.md`):
+O projeto aceita comandos dedicados para cada plataforma (`cf`, `bee`, `atc` e `gen`), criando uma pasta isolada para cada problema com `main.cpp` (vazio) e `editorial.md` (preenchido a partir do `template.md`, substituindo automaticamente `[ID]` e `[URL do problema]`):
+
+* **Links gerados automaticamente no `editorial.md`:**
+  * **Codeforces (`cf`):**
+    * Contest (`id <= 100000`): `https://codeforces.com/contest/<id>/problem/<letter>`
+    * Gym (`id > 100000`): `https://codeforces.com/gym/<id>/problem/<letter>`
+  * **Beecrowd (`bee`):** `https://judge.beecrowd.com/pt/problems/view/<id>`
+  * **AtCoder (`atc`):** `https://atcoder.jp/contests/<id>/tasks/<id>_<letter>`
+  * **Genérico (`gen`):** `[COLOQUE O LINK AQUI]`
 
 #### **Codeforces (`cf`)**
 * Gerar problemas padrão de um contest (de **A** até **F**):

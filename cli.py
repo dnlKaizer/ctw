@@ -6,16 +6,31 @@ DEFAULT_PROBLEMS = ["A", "B", "C", "D", "E", "F"]
 VALID_PLATFORMS = {"cf", "bee", "atc", "gen"}
 VALID_COMMANDS = VALID_PLATFORMS | {"tests"}
 
-def get_editorial_content(base_dir: Path, problem_label: str) -> str:
-    """Lê o template.md da raiz (se existir) e substitui o marcador do problema."""
+def build_problem_url(platform: str, group_id: str, problem_id: str = "") -> str:
+    """Constrói a URL do problema de acordo com a plataforma."""
+    if platform == "cf":
+        if group_id.isdigit() and int(group_id) > 100000:
+            return f"https://codeforces.com/gym/{group_id}/problem/{problem_id}"
+        return f"https://codeforces.com/contest/{group_id}/problem/{problem_id}"
+    if platform == "bee":
+        return f"https://judge.beecrowd.com/pt/problems/view/{problem_id}"
+    if platform == "atc":
+        contest = group_id.lower()
+        return f"https://atcoder.jp/contests/{contest}/tasks/{contest}_{problem_id.lower()}"
+    return "[COLOQUE O LINK AQUI]"
+
+def get_editorial_content(base_dir: Path, problem_label: str, problem_url: str) -> str:
+    """Lê o template.md da raiz (se existir) e substitui os marcadores do problema."""
     for candidate in ["template.md", "Template.md"]:
         template_path = base_dir / candidate
         if template_path.is_file():
             content = template_path.read_text(encoding="utf-8")
-            return re.sub(r"\[ID/Nome do Problema\]", problem_label, content)
-    return f"# {problem_label} - Título\n"
+            content = re.sub(r"\[ID(?:/Nome do Problema)?\]", problem_label, content)
+            content = re.sub(r"\[URL do problema\]", problem_url, content)
+            return content
+    return f"# {problem_label} - [Nome do Problema]\n\n- **Link:** {problem_url}\n"
 
-def create_problem_dir(base_dir: Path, problem_dir: Path, problem_label: str):
+def create_problem_dir(base_dir: Path, problem_dir: Path, problem_label: str, problem_url: str):
     """Cria a pasta do problema contendo main.cpp e editorial.md."""
     problem_dir.mkdir(parents=True, exist_ok=True)
 
@@ -30,7 +45,7 @@ def create_problem_dir(base_dir: Path, problem_dir: Path, problem_label: str):
     if editorial_path.exists():
         print(f"[-] {editorial_path.relative_to(base_dir)} já existe. Ignorado.")
     else:
-        editorial_content = get_editorial_content(base_dir, problem_label)
+        editorial_content = get_editorial_content(base_dir, problem_label, problem_url)
         editorial_path.write_text(editorial_content, encoding="utf-8")
         print(f"[+] Criado: {editorial_path.relative_to(base_dir)}")
 
@@ -117,38 +132,44 @@ def main():
         for p in problems:
             clean_p = p[:-4] if p.endswith(".cpp") else p
             problem_dir = base_dir / "src" / platform / group_id / clean_p
-            create_problem_dir(base_dir, problem_dir, f"{group_id}{clean_p}")
+            url = build_problem_url(platform, group_id, clean_p)
+            create_problem_dir(base_dir, problem_dir, f"{group_id}{clean_p}", url)
 
     elif platform == "bee":
         if not raw_problems:
             # Ex: bee 1938 -> src/bee/1938/main.cpp e editorial.md
             clean_id = group_id[:-4] if group_id.endswith(".cpp") else group_id
             problem_dir = base_dir / "src" / "bee" / clean_id
-            create_problem_dir(base_dir, problem_dir, clean_id)
+            url = build_problem_url("bee", group_id, clean_id)
+            create_problem_dir(base_dir, problem_dir, clean_id, url)
         elif group_id.isdigit() and all(p.isdigit() for p in raw_problems):
             # Ex: bee 1001 1002 1003 -> cria uma pasta para cada ID
             for pid in [group_id] + raw_problems:
                 problem_dir = base_dir / "src" / "bee" / pid
-                create_problem_dir(base_dir, problem_dir, pid)
+                url = build_problem_url("bee", group_id, pid)
+                create_problem_dir(base_dir, problem_dir, pid, url)
         else:
             # Ex: bee math 1028 1161 -> src/bee/math/1028/main.cpp e editorial.md
             for p in raw_problems:
                 clean_p = p[:-4] if p.endswith(".cpp") else p
                 problem_dir = base_dir / "src" / "bee" / group_id / clean_p
-                create_problem_dir(base_dir, problem_dir, clean_p)
+                url = build_problem_url("bee", group_id, clean_p)
+                create_problem_dir(base_dir, problem_dir, clean_p, url)
 
     else:  # gen
         if not raw_problems:
             # Ex: gen ConvexHull -> src/gen/ConvexHull/main.cpp e editorial.md
             clean_id = group_id[:-4] if group_id.endswith(".cpp") else group_id
             problem_dir = base_dir / "src" / "gen" / clean_id
-            create_problem_dir(base_dir, problem_dir, clean_id)
+            url = build_problem_url("gen", group_id, clean_id)
+            create_problem_dir(base_dir, problem_dir, clean_id, url)
         else:
             # Ex: gen geometry ConvexHull -> src/gen/geometry/ConvexHull/main.cpp e editorial.md
             for p in raw_problems:
                 clean_p = p[:-4] if p.endswith(".cpp") else p
                 problem_dir = base_dir / "src" / "gen" / group_id / clean_p
-                create_problem_dir(base_dir, problem_dir, clean_p)
+                url = build_problem_url("gen", group_id, clean_p)
+                create_problem_dir(base_dir, problem_dir, clean_p, url)
 
 if __name__ == "__main__":
     main()

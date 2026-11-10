@@ -1,7 +1,8 @@
-# [ID/Nome do Problema] - Título
+# [ID] - [Nome do Problema]
 
-- **Tópicos:** DP, Two Pointers, Bitmask
-- **Ideia central:** Por que a abordagem gulosa falha e precisamos de DP?
-- **Insight:** Qual foi a observação chave que reduziu a complexidade de $O(N^2)$ para $O(N \log N)$?
-- **Complexidade:** Tempo $O(N \log N)$, Espaço $O(N)$.
-- **Erros cometidos:** Overflow de `int` no passo intermediário; array vazio.
+- **Link:** [URL do problema]
+- **Tópicos:** [Tags do Codeforces / Técnicas envolvidas]
+- **Ideia central:** [Formalização do problema: o que o enunciado realmente pede em termos matemáticos/algorítmicos, sem a historinha e sem spoiler da solução]
+- **Insight:** [A sacada que destrava o problema: propriedade matemática, invariante, por que a força bruta falha ou o que permitiu otimizar]
+- **Complexidade:** Tempo $O(...)$, Espaço $O(...)$
+- **Pontos de atenção:** [Bugs encontrados, WA em testes específicos, necessidade de `long long`, casos de borda ($N=1$, arrays vazios) ou "Nenhum"]
