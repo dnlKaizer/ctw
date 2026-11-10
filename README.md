@@ -14,13 +14,14 @@ O projeto permite gerar automaticamente a estrutura de pastas e arquivos `.cpp` 
 │   ├── launch.json     # Configuração do debugger C++ via GDB (Ctrl + F5)
 │   ├── settings.json   # Configuração do IntelliSense C++ (g++ / C++20) e ocultação de binários
 │   └── tasks.json      # Tasks de compilação espelhada em bin/ e execução rápida (F5)
-├── src/                # Código-fonte (.cpp) organizado por plataforma
-│   ├── cf/             # Problemas do Codeforces (ex: src/cf/2044/A.cpp)
-│   ├── bee/            # Problemas do Beecrowd (ex: src/bee/1938/Main.cpp)
-│   ├── atc/            # Problemas do AtCoder (ex: src/atc/abc300/A.cpp)
-│   └── gen/            # Testes genéricos e algoritmos (ex: src/gen/geometry/ConvexHull.cpp)
+├── src/                # Código-fonte (.cpp) e editoriais (.md) organizados por plataforma
+│   ├── cf/             # Problemas do Codeforces (ex: src/cf/908/C/main.cpp e editorial.md)
+│   ├── bee/            # Problemas do Beecrowd (ex: src/bee/1938/main.cpp e editorial.md)
+│   ├── atc/            # Problemas do AtCoder (ex: src/atc/abc300/A/main.cpp e editorial.md)
+│   └── gen/            # Testes genéricos e algoritmos (ex: src/gen/geometry/ConvexHull/main.cpp)
 ├── bin/                # Executáveis compilados (.exe) espelhando a estrutura de src/ (ignorado pelo Git)
-├── cli.py              # Script unificado de geração dos arquivos (.cpp e entradas de teste)
+├── cli.py              # Script unificado de geração dos diretórios, main.cpp, editorial.md e casos de teste
+├── template.md         # Template base para o editorial.md de cada problema
 └── README.md
 ```
 
@@ -201,7 +202,10 @@ runc() {
     if [ -f "${TARGET}.cpp" ]; then
         FILE="${TARGET}.cpp"
     elif [ -d "$TARGET" ]; then
-        if [ -f "$TARGET/Main.cpp" ]; then
+        if [ -f "$TARGET/main.cpp" ]; then
+            FILE="$TARGET/main.cpp"
+            TARGET="$TARGET/main"
+        elif [ -f "$TARGET/Main.cpp" ]; then
             FILE="$TARGET/Main.cpp"
             TARGET="$TARGET/Main"
         elif [ -f "$TARGET/$(basename "$TARGET").cpp" ]; then
@@ -277,19 +281,20 @@ source ~/.bashrc
 
 ### 1. Criar estrutura de arquivos por plataforma
 
-O projeto aceita comandos dedicados para cada plataforma (`cf`, `bee`, `atc` e `gen`), criando arquivos `.cpp` vazios dentro de `src/`:
+O projeto aceita comandos dedicados para cada plataforma (`cf`, `bee`, `atc` e `gen`), criando uma pasta isolada para cada problema com `main.cpp` (vazio) e `editorial.md` (preenchido a partir do `template.md`):
 
 #### **Codeforces (`cf`)**
 * Gerar problemas padrão de um contest (de **A** até **F**):
   ```bash
-  cf 2044
+  cf 908
   ```
-  *(Cria `src/cf/2044/A.cpp` até `F.cpp` vazios)*
+  *(Cria `src/cf/908/A/main.cpp` e `editorial.md` até `src/cf/908/F/`)*
 
 * Gerar problemas específicos:
   ```bash
-  cf 2044 A B C
+  cf 908 C
   ```
+  *(Cria `src/cf/908/C/main.cpp` e `src/cf/908/C/editorial.md`)*
 
 ---
 
@@ -298,7 +303,7 @@ O projeto aceita comandos dedicados para cada plataforma (`cf`, `bee`, `atc` e `
   ```bash
   atc abc300
   ```
-  *(Cria `src/atc/abc300/A.cpp` até `F.cpp`)*
+  *(Cria `src/atc/abc300/A/main.cpp` e `editorial.md` até `F/`)*
 
 * Gerar problemas específicos:
   ```bash
@@ -308,32 +313,32 @@ O projeto aceita comandos dedicados para cada plataforma (`cf`, `bee`, `atc` e `
 ---
 
 #### **Beecrowd (`bee`)**
-* Criar pasta e arquivo `Main.cpp` diretamente pelo ID do problema:
+* Criar a pasta do problema diretamente pelo ID:
   ```bash
   bee 1938
   ```
-  *(Cria `src/bee/1938/Main.cpp`)*
+  *(Cria `src/bee/1938/main.cpp` e `src/bee/1938/editorial.md`)*
 
 * Agrupar vários problemas por categoria/tópico:
   ```bash
-  bee math 1028 1161 1163
+  bee math 1028 1161
   ```
-  *(Cria `src/bee/math/1028.cpp`, `src/bee/math/1161.cpp`, etc.)*
+  *(Cria `src/bee/math/1028/main.cpp` e `editorial.md`, etc.)*
 
 ---
 
 #### **Genérico / Testes / Algoritmos (`gen`)**
-* Criar arquivos avulsos de estudo, algoritmos ou testes em subpastas:
+* Criar pastas de estudo, algoritmos ou testes em subpastas:
   ```bash
   gen geometry ConvexHull
   ```
-  *(Cria `src/gen/geometry/ConvexHull.cpp`)*
+  *(Cria `src/gen/geometry/ConvexHull/main.cpp` e `src/gen/geometry/ConvexHull/editorial.md`)*
 
 * Criar múltiplos tópicos de uma vez:
   ```bash
   gen graphs Dijkstra BFS DFS
   ```
-  *(Cria `src/gen/graphs/Dijkstra.cpp`, `src/gen/graphs/BFS.cpp`, etc.)*
+  *(Cria `src/gen/graphs/Dijkstra/main.cpp` e `editorial.md`, etc.)*
 
 ---
 
@@ -341,46 +346,43 @@ O projeto aceita comandos dedicados para cada plataforma (`cf`, `bee`, `atc` e `
 * Criar $N$ arquivos de teste numerados (`in1.txt`, `in2.txt`, ..., `inN.txt`) dentro da pasta desejada:
   ```bash
   tests bee/1938 3
+  tests cf/908/C 2
   ```
-  *(Cria `src/bee/1938/in1.txt`, `src/bee/1938/in2.txt` e `src/bee/1938/in3.txt`)*
+  *(Cria `in1.txt`, `in2.txt`, etc. dentro da pasta do problema)*
 
 ---
 
 ### 2. Executar soluções pelo terminal (`runc`)
 
-O comando `runc` aceita caminhos **com ou sem** o prefixo `src/`, compila o `.cpp` com `g++ -std=c++20 -O2 -Wall` no diretório espelhado dentro de `bin/` e executa o binário:
+O comando `runc` aceita o caminho da pasta do problema (com ou sem `src/`), encontra automaticamente o `main.cpp`, compila com `g++ -std=c++20 -O2 -Wall` no diretório espelhado dentro de `bin/` e executa o binário:
 
 * **Codeforces:**
   ```bash
-  runc cf/2044/A
-  runc src/cf/2044/A
+  runc cf/908/C
+  runc src/cf/908/C
   ```
 
 * **AtCoder:**
   ```bash
   runc atc/abc300/A
-  runc src/atc/abc300/A
   ```
 
 * **Beecrowd:**
   ```bash
   runc bee/1938
-  runc src/bee/1938/Main
   ```
 
 * **Genérico:**
   ```bash
   runc gen/geometry/ConvexHull
-  runc src/gen/graphs/Dijkstra
   ```
 
 * **Execução passando arquivo de entrada (redirecionamento de input):**
-  Pode passar o caminho da pasta ou do arquivo, e o nome do arquivo de entrada (com ou sem `.txt`):
+  Pode passar o caminho da pasta (ou do arquivo) e o nome do arquivo de entrada (com ou sem `.txt`):
   ```bash
-  runc bee/1938 in1.txt               # executa src/bee/1938/Main.cpp com src/bee/1938/in1.txt
-  runc bee/1938 in1                   # também encontra in1.txt automaticamente
-  runc src/bee/1938/Main in1.txt      # especificando o caminho com src/ explicitamente
-  runc cf/2044/A in1.txt              # busca no diretório atual ou dentro de src/cf/2044/in1.txt
+  runc cf/908/C in1.txt               # executa src/cf/908/C/main.cpp com src/cf/908/C/in1.txt
+  runc cf/908/C in1                   # também encontra in1.txt automaticamente
+  runc bee/1938 in1                   # executa src/bee/1938/main.cpp com src/bee/1938/in1.txt
   ```
 
 ---

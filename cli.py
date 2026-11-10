@@ -1,16 +1,45 @@
 import sys
+import re
 from pathlib import Path
 
 DEFAULT_PROBLEMS = ["A", "B", "C", "D", "E", "F"]
 VALID_PLATFORMS = {"cf", "bee", "atc", "gen"}
 VALID_COMMANDS = VALID_PLATFORMS | {"tests"}
 
+def get_editorial_content(base_dir: Path, problem_label: str) -> str:
+    """Lê o template.md da raiz (se existir) e substitui o marcador do problema."""
+    for candidate in ["template.md", "Template.md"]:
+        template_path = base_dir / candidate
+        if template_path.is_file():
+            content = template_path.read_text(encoding="utf-8")
+            return re.sub(r"\[ID/Nome do Problema\]", problem_label, content)
+    return f"# {problem_label} - Título\n"
+
+def create_problem_dir(base_dir: Path, problem_dir: Path, problem_label: str):
+    """Cria a pasta do problema contendo main.cpp e editorial.md."""
+    problem_dir.mkdir(parents=True, exist_ok=True)
+
+    cpp_path = problem_dir / "main.cpp"
+    if cpp_path.exists() or (problem_dir / "Main.cpp").exists():
+        print(f"[-] {cpp_path.relative_to(base_dir)} já existe. Ignorado.")
+    else:
+        cpp_path.write_text("", encoding="utf-8")
+        print(f"[+] Criado: {cpp_path.relative_to(base_dir)}")
+
+    editorial_path = problem_dir / "editorial.md"
+    if editorial_path.exists():
+        print(f"[-] {editorial_path.relative_to(base_dir)} já existe. Ignorado.")
+    else:
+        editorial_content = get_editorial_content(base_dir, problem_label)
+        editorial_path.write_text(editorial_content, encoding="utf-8")
+        print(f"[+] Criado: {editorial_path.relative_to(base_dir)}")
+
 def handle_tests(args: list[str], base_dir: Path):
     if not args:
         print("Uso: tests <caminho_da_pasta> [quantidade]")
         print("Exemplos:")
         print("  tests bee/1938 3")
-        print("  tests cf/2044 2")
+        print("  tests cf/2044/A 2")
         sys.exit(1)
 
     target_rel = args[0]
@@ -28,7 +57,7 @@ def handle_tests(args: list[str], base_dir: Path):
     if not target_path.exists() and not target_rel.startswith("src"):
         target_path = base_dir / "src" / target_rel
 
-    # Se o usuário passou o caminho de um arquivo (ex: bee/1938/Main.cpp), usa a pasta pai
+    # Se o usuário passou o caminho de um arquivo (ex: bee/1938/main.cpp), usa a pasta pai
     if target_path.suffix in {".cpp", ".java"} or target_path.with_suffix(".cpp").is_file() or target_path.with_suffix(".java").is_file():
         target_dir = target_path.parent
     else:
@@ -73,7 +102,8 @@ def main():
             print(f"  {platform} 2044 A B C")
         elif platform == "bee":
             print("  bee 1001")
-            print("  bee math 1028 1161 1163")
+            print("  bee 1001 1002 1003")
+            print("  bee math 1028 1161")
         else:
             print("  gen geometry ConvexHull")
             print("  gen graphs Dijkstra BFS DFS")
@@ -82,34 +112,43 @@ def main():
     group_id = args[0]
     raw_problems = args[1:]
 
-    # Define a lista de problemas
     if platform in {"cf", "atc"}:
         problems = [p.upper() for p in raw_problems] if raw_problems else DEFAULT_PROBLEMS
+        for p in problems:
+            clean_p = p[:-4] if p.endswith(".cpp") else p
+            problem_dir = base_dir / "src" / platform / group_id / clean_p
+            create_problem_dir(base_dir, problem_dir, f"{group_id}{clean_p}")
+
     elif platform == "bee":
-        # Se passou 'bee 1001', cria src/bee/1001/Main.cpp (ou problemas específicos se informados)
-        if raw_problems:
-            problems = raw_problems
+        if not raw_problems:
+            # Ex: bee 1938 -> src/bee/1938/main.cpp e editorial.md
+            clean_id = group_id[:-4] if group_id.endswith(".cpp") else group_id
+            problem_dir = base_dir / "src" / "bee" / clean_id
+            create_problem_dir(base_dir, problem_dir, clean_id)
+        elif group_id.isdigit() and all(p.isdigit() for p in raw_problems):
+            # Ex: bee 1001 1002 1003 -> cria uma pasta para cada ID
+            for pid in [group_id] + raw_problems:
+                problem_dir = base_dir / "src" / "bee" / pid
+                create_problem_dir(base_dir, problem_dir, pid)
         else:
-            problems = ["Main"]
+            # Ex: bee math 1028 1161 -> src/bee/math/1028/main.cpp e editorial.md
+            for p in raw_problems:
+                clean_p = p[:-4] if p.endswith(".cpp") else p
+                problem_dir = base_dir / "src" / "bee" / group_id / clean_p
+                create_problem_dir(base_dir, problem_dir, clean_p)
+
     else:  # gen
-        if raw_problems:
-            problems = raw_problems
+        if not raw_problems:
+            # Ex: gen ConvexHull -> src/gen/ConvexHull/main.cpp e editorial.md
+            clean_id = group_id[:-4] if group_id.endswith(".cpp") else group_id
+            problem_dir = base_dir / "src" / "gen" / clean_id
+            create_problem_dir(base_dir, problem_dir, clean_id)
         else:
-            problems = [group_id]
-
-    target_dir = base_dir / "src" / platform / group_id
-    target_dir.mkdir(parents=True, exist_ok=True)
-
-    for p in problems:
-        file_name = p if p.endswith(".cpp") else f"{p}.cpp"
-        file_path = target_dir / file_name
-
-        if file_path.exists():
-            print(f"[-] {file_path.name} já existe. Ignorado.")
-            continue
-
-        file_path.write_text("", encoding="utf-8")
-        print(f"[+] Criado: {file_path.relative_to(base_dir)}")
+            # Ex: gen geometry ConvexHull -> src/gen/geometry/ConvexHull/main.cpp e editorial.md
+            for p in raw_problems:
+                clean_p = p[:-4] if p.endswith(".cpp") else p
+                problem_dir = base_dir / "src" / "gen" / group_id / clean_p
+                create_problem_dir(base_dir, problem_dir, clean_p)
 
 if __name__ == "__main__":
     main()
