@@ -1,0 +1,8 @@
+# 2185E - The Robotic Rush
+
+- **Link:** https://codeforces.com/contest/2185/problem/E
+- **Tópicos:** Binary Search, Greedy, Implementation
+- **Ideia central:** Dados dois vetores $a$ e $b$, a partir de operações de shift pra esquerda e direita, determinar quantos elementos de $a$ vão passar por cima dos elementos de $b$ a cada iteração.
+- **Insight:** Não é necessário simular todas as operações para cada elemento. Podemos calcular um limite superior e inferior para cada $a_i$ fazendo uma busca binária no vetor $b$ ordenado. Então, guardamos em um vetor (com todos os limites possíveis), um vetor de índices de elementos que tem aquele limite superior ou inferior. Por fim, executamos a simulação e analisamos se, no estado atual, existe algum elemento $a_i$ que passa por cima de algum elemento $b_j$ a cada iteração. Como cada elemento $a_i$ tem no máximo dois limites, vamos passar pelos elementos de $a$ no máximo duas vezes e pelos elementos de $k$ uma única vez.
+- **Complexidade:** Tempo $O(N \log{N})$, Espaço $O(N)$
+- **Pontos de atenção:** Nunca usar unordered_map, pois existe test cases que podem torná-lo $O(N^2)$. Nesse caso, deve-se usar um map ou um vetor que indexa de $-k$ até $k$ (ou seja, de $0$ até $2k$). Se usar vetor, lembrar que as operações não podem ser menores que $-k$ ou maiores que $k$, mas os limites dos elementos de $a$ podem ser. Por isso, é necessário verificar se $0 <= idx <= 2k$
