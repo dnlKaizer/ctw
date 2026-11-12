@@ -1,8 +1,8 @@
 # Competitive Programming Training Workflow (C++)
 
-Ambiente local para resolução, execução e depuração de problemas de programação competitiva em **C++**, configurado para o VS Code e Git Bash no Windows.
+Ambiente local para resolução, execução e depuração de problemas de programação competitiva em **C++**, configurado para o VS Code e **WSL** (ou Git Bash) no Windows.
 
-O projeto permite gerar automaticamente a estrutura de pastas e arquivos `.cpp` vazios para cada contest/problema em `src/`, compilar os binários `.exe` de forma espelhada e isolada em `bin/`, executar direto pelo terminal (com suporte a arquivos de teste) ou via atalho `F5`, e debugar via `Ctrl + F5` com breakpoints usando `g++` e `gdb`.
+O projeto permite gerar automaticamente a estrutura de pastas e arquivos `.cpp` vazios para cada contest/problema em `src/`, compilar os binários de forma espelhada e isolada em `bin/`, executar direto pelo terminal (com suporte a arquivos de teste) ou via atalho `F5`, e debugar via `Ctrl + F5` com breakpoints usando `g++` e `gdb`.
 
 ---
 
@@ -18,8 +18,9 @@ O projeto permite gerar automaticamente a estrutura de pastas e arquivos `.cpp` 
 │   ├── cf/             # Problemas do Codeforces (ex: src/cf/908/C/main.cpp e README.md)
 │   ├── bee/            # Problemas do Beecrowd (ex: src/bee/1938/main.cpp e README.md)
 │   ├── atc/            # Problemas do AtCoder (ex: src/atc/abc300/A/main.cpp e README.md)
+│   ├── leet/           # Problemas do LeetCode (ex: src/leet/two-sum/main.cpp e README.md)
 │   └── gen/            # Testes genéricos e algoritmos (ex: src/gen/geometry/ConvexHull/main.cpp)
-├── bin/                # Executáveis compilados (.exe) espelhando a estrutura de src/ (ignorado pelo Git)
+├── bin/                # Executáveis compilados espelhando a estrutura de src/ (ignorado pelo Git)
 ├── cli.py              # Script unificado de geração dos diretórios, main.cpp, README.md e casos de teste
 ├── template.md         # Template base para o README.md de cada problema
 └── README.md
@@ -155,11 +156,11 @@ Para usar **`F5`** como Run (`runc`) e **`Ctrl + F5`** como Debug:
 ]
 ```
 
-### 3. Configurar atalhos no Git Bash (`~/.bashrc`)
+### 3. Configurar atalhos no WSL (`~/.bashrc`)
 
-Abra o arquivo no Git Bash:
+Abra o arquivo no terminal do WSL:
 ```bash
-notepad ~/.bashrc
+nano ~/.bashrc
 ```
 
 Adicione o seguinte conteúdo ao final do arquivo:
@@ -176,43 +177,51 @@ _ctw_root() {
         [ "$parent" = "$dir" ] && break
         dir="$parent"
     done
+    if [ -f "/mnt/c/Danilo/Projetos/Melhores/ctw/cli.py" ]; then
+        echo "/mnt/c/Danilo/Projetos/Melhores/ctw"
+        return 0
+    fi
     git rev-parse --show-toplevel 2>/dev/null || echo "."
 }
 
-# Gerar arquivos para plataformas (Codeforces, Beecrowd, AtCoder, Genérico) e casos de teste
+# Gerar arquivos para plataformas (Codeforces, Beecrowd, AtCoder, LeetCode, Genérico) e casos de teste
 cf() {
-    python "$(_ctw_root)/cli.py" cf "$@"
+    python3 "$(_ctw_root)/cli.py" cf "$@"
 }
 
 bee() {
-    python "$(_ctw_root)/cli.py" bee "$@"
+    python3 "$(_ctw_root)/cli.py" bee "$@"
 }
 
 atc() {
-    python "$(_ctw_root)/cli.py" atc "$@"
+    python3 "$(_ctw_root)/cli.py" atc "$@"
+}
+
+leet() {
+    python3 "$(_ctw_root)/cli.py" leet "$@"
 }
 
 gen() {
-    python "$(_ctw_root)/cli.py" gen "$@"
+    python3 "$(_ctw_root)/cli.py" gen "$@"
 }
 
 tests() {
-    python "$(_ctw_root)/cli.py" tests "$@"
+    python3 "$(_ctw_root)/cli.py" tests "$@"
 }
 
-# Compilar C++ (em bin/<caminho_relativo>) e executar uma solução
+# Compilar C++ (em bin/<caminho_relativo>) e executar uma solução no WSL
 runc() {
     if [ -z "$1" ]; then
         echo "Uso: runc <caminho_ou_pasta> [input_file]"
         echo "Exemplo: runc cf/2044/A"
         echo "Exemplo: runc src/cf/2044/A"
+        echo "Exemplo: runc leet/two-sum"
         echo "Exemplo: runc bee/1938 in1.txt"
-        echo "Exemplo: runc bee/1938/Main in1.txt"
         return 1
     fi
 
-    local ROOT_DIR=$(cygpath -m "$(_ctw_root)")
-    local TARGET=$(cygpath -m "$1")
+    local ROOT_DIR="$(_ctw_root)"
+    local TARGET="$1"
     TARGET="${TARGET%/}"
     TARGET="${TARGET%.cpp}"
     local FILE=""
@@ -253,7 +262,7 @@ runc() {
         return 1
     fi
 
-    FILE=$(cygpath -m "$(cd "$(dirname "$FILE")" && pwd)/$(basename "$FILE")")
+    FILE="$(cd "$(dirname "$FILE")" && pwd)/$(basename "$FILE")"
     local SRC_DIR=$(dirname "$FILE")
     local BIN_NAME=$(basename "$TARGET")
 
@@ -269,8 +278,8 @@ runc() {
     local OUT_DIR="$ROOT_DIR/bin${REL_DIR:+/$REL_DIR}"
     mkdir -p "$OUT_DIR"
 
-    local EXE_PATH="$OUT_DIR/${BIN_NAME}.exe"
-    local PCH_DIR="$ROOT_DIR/bin/_pch"
+    local EXE_PATH="$OUT_DIR/${BIN_NAME}"
+    local PCH_DIR="$ROOT_DIR/bin/_pch_wsl"
     local PCH_PATH="$PCH_DIR/bits/stdc++.h.gch"
 
     if [ ! -f "$PCH_PATH" ]; then
@@ -318,7 +327,7 @@ source ~/.bashrc
 
 ### 1. Criar estrutura de arquivos por plataforma
 
-O projeto aceita comandos dedicados para cada plataforma (`cf`, `bee`, `atc` e `gen`), criando uma pasta isolada para cada problema com `main.cpp` (vazio) e `README.md` (preenchido a partir do `template.md`, substituindo automaticamente `[ID]` e `[URL do problema]`):
+O projeto aceita comandos dedicados para cada plataforma (`cf`, `bee`, `atc`, `leet` e `gen`), criando uma pasta isolada para cada problema com `main.cpp` (vazio) e `README.md` (preenchido a partir do `template.md`, substituindo automaticamente `[ID]` e `[URL do problema]`):
 
 * **Links gerados automaticamente no `README.md`:**
   * **Codeforces (`cf`):**
@@ -326,6 +335,7 @@ O projeto aceita comandos dedicados para cada plataforma (`cf`, `bee`, `atc` e `
     * Gym (`id > 100000`): `https://codeforces.com/gym/<id>/problem/<letter>`
   * **Beecrowd (`bee`):** `https://judge.beecrowd.com/pt/problems/view/<id>`
   * **AtCoder (`atc`):** `https://atcoder.jp/contests/<id>/tasks/<id>_<letter>`
+  * **LeetCode (`leet`):** `https://leetcode.com/problems/<slug>/`
   * **Genérico (`gen`):** `[COLOQUE O LINK AQUI]`
 
 #### **Codeforces (`cf`)**
@@ -372,6 +382,21 @@ O projeto aceita comandos dedicados para cada plataforma (`cf`, `bee`, `atc` e `
 
 ---
 
+#### **LeetCode (`leet`)**
+* Criar a pasta do problema diretamente pelo slug/nome:
+  ```bash
+  leet two-sum
+  ```
+  *(Cria `src/leet/two-sum/main.cpp` e `src/leet/two-sum/README.md`)*
+
+* Agrupar vários problemas por categoria/tópico:
+  ```bash
+  leet dp climbing-stairs coin-change
+  ```
+  *(Cria `src/leet/dp/climbing-stairs/main.cpp` e `README.md`, etc.)*
+
+---
+
 #### **Genérico / Testes / Algoritmos (`gen`)**
 * Criar pastas de estudo, algoritmos ou testes em subpastas:
   ```bash
@@ -399,7 +424,7 @@ O projeto aceita comandos dedicados para cada plataforma (`cf`, `bee`, `atc` e `
 
 ### 2. Executar soluções pelo terminal (`runc`)
 
-O comando `runc` aceita o caminho da pasta do problema (com ou sem `src/`), encontra automaticamente o `main.cpp`, compila com `g++ -std=c++20 -O2 -Wall` no diretório espelhado dentro de `bin/` e executa o binário:
+O comando `runc` aceita o caminho da pasta do problema (com ou sem `src/`), encontra automaticamente o `main.cpp`, compila com `g++ -std=c++20 -g -O0 -Wall` no diretório espelhado dentro de `bin/` e executa o binário:
 
 * **Codeforces:**
   ```bash
@@ -415,6 +440,12 @@ O comando `runc` aceita o caminho da pasta do problema (com ou sem `src/`), enco
 * **Beecrowd:**
   ```bash
   runc bee/1938
+  ```
+
+* **LeetCode:**
+  ```bash
+  runc leet/two-sum
+  runc leet/dp/climbing-stairs
   ```
 
 * **Genérico:**

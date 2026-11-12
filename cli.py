@@ -3,8 +3,15 @@ import re
 from pathlib import Path
 
 DEFAULT_PROBLEMS = ["A", "B", "C", "D", "E", "F"]
-VALID_PLATFORMS = {"cf", "bee", "atc", "gen"}
+VALID_PLATFORMS = {"cf", "bee", "atc", "leet", "gen"}
 VALID_COMMANDS = VALID_PLATFORMS | {"tests"}
+
+def _format_leet_slug(problem_id: str) -> str:
+    """Converte o identificador do problema em um slug válido do LeetCode."""
+    slug = re.sub(r"^\d+[-_.]*", "", problem_id.strip())
+    slug = re.sub(r"(?<=[a-z0-9])(?=[A-Z])", "-", slug)
+    slug = re.sub(r"[_\s]+", "-", slug).lower().strip("-")
+    return slug or problem_id.lower()
 
 def build_problem_url(platform: str, group_id: str, problem_id: str = "") -> str:
     """Constrói a URL do problema de acordo com a plataforma."""
@@ -17,6 +24,10 @@ def build_problem_url(platform: str, group_id: str, problem_id: str = "") -> str
     if platform == "atc":
         contest = group_id.lower()
         return f"https://atcoder.jp/contests/{contest}/tasks/{contest}_{problem_id.lower()}"
+    if platform == "leet":
+        if problem_id.isdigit():
+            return f"https://leetcode.com/problemset/?search={problem_id}"
+        return f"https://leetcode.com/problems/{_format_leet_slug(problem_id)}/"
     return "[COLOQUE O LINK AQUI]"
 
 def get_editorial_content(base_dir: Path, problem_label: str, problem_url: str) -> str:
@@ -119,6 +130,9 @@ def main():
             print("  bee 1001")
             print("  bee 1001 1002 1003")
             print("  bee math 1028 1161")
+        elif platform == "leet":
+            print("  leet two-sum")
+            print("  leet dp climbing-stairs coin-change")
         else:
             print("  gen geometry ConvexHull")
             print("  gen graphs Dijkstra BFS DFS")
@@ -135,25 +149,25 @@ def main():
             url = build_problem_url(platform, group_id, clean_p)
             create_problem_dir(base_dir, problem_dir, f"{group_id}{clean_p}", url)
 
-    elif platform == "bee":
+    elif platform in {"bee", "leet"}:
         if not raw_problems:
-            # Ex: bee 1938 -> src/bee/1938/main.cpp e README.md
+            # Ex: bee 1938 ou leet two-sum -> src/<platform>/<id>/main.cpp e README.md
             clean_id = group_id[:-4] if group_id.endswith(".cpp") else group_id
-            problem_dir = base_dir / "src" / "bee" / clean_id
-            url = build_problem_url("bee", group_id, clean_id)
+            problem_dir = base_dir / "src" / platform / clean_id
+            url = build_problem_url(platform, group_id, clean_id)
             create_problem_dir(base_dir, problem_dir, clean_id, url)
         elif group_id.isdigit() and all(p.isdigit() for p in raw_problems):
             # Ex: bee 1001 1002 1003 -> cria uma pasta para cada ID
             for pid in [group_id] + raw_problems:
-                problem_dir = base_dir / "src" / "bee" / pid
-                url = build_problem_url("bee", group_id, pid)
+                problem_dir = base_dir / "src" / platform / pid
+                url = build_problem_url(platform, group_id, pid)
                 create_problem_dir(base_dir, problem_dir, pid, url)
         else:
-            # Ex: bee math 1028 1161 -> src/bee/math/1028/main.cpp e README.md
+            # Ex: bee math 1028 1161 ou leet dp climbing-stairs -> src/<platform>/<topico>/<id>/main.cpp e README.md
             for p in raw_problems:
                 clean_p = p[:-4] if p.endswith(".cpp") else p
-                problem_dir = base_dir / "src" / "bee" / group_id / clean_p
-                url = build_problem_url("bee", group_id, clean_p)
+                problem_dir = base_dir / "src" / platform / group_id / clean_p
+                url = build_problem_url(platform, group_id, clean_p)
                 create_problem_dir(base_dir, problem_dir, clean_p, url)
 
     else:  # gen
