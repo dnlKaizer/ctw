@@ -4,9 +4,13 @@
         {
             "label": "build-current-file",
             "type": "shell",
-            "command": "REL_DIR=$(cygpath -m '${relativeFileDirname}'); REL_DIR=${REL_DIR#src/}; FILE=$(cygpath -m '${file}'); OUT_DIR=bin/$REL_DIR; mkdir -p \"$OUT_DIR\" bin/_debug && g++ -std=c++20 -g -O0 -Wall \"$FILE\" -o \"$OUT_DIR/${fileBasenameNoExtension}.exe\" && cp \"$OUT_DIR/${fileBasenameNoExtension}.exe\" bin/_debug/debug.exe",
+            "command": "REL_DIR=$(cygpath -m '${relativeFileDirname}'); REL_DIR=${REL_DIR#src/}; FILE=$(cygpath -m '${file}'); OUT_DIR=\"bin/$REL_DIR\"; EXE=\"$OUT_DIR/${fileBasenameNoExtension}.exe\"; PCH=\"bin/_pch/bits/stdc++.h.gch\"; if [ ! -f \"$PCH\" ]; then mkdir -p bin/_pch/bits && printf '#pragma once\\n#include_next <bits/stdc++.h>\\n' > bin/_pch/bits/stdc++.h && g++ -std=c++20 -g -O0 -Wall -x c++-header bin/_pch/bits/stdc++.h -o \"$PCH\"; fi; mkdir -p \"$OUT_DIR\" bin/_debug && if [ ! -f \"$EXE\" ] || [ \"$FILE\" -nt \"$EXE\" ]; then g++ -Ibin/_pch -std=c++20 -g -O0 -Wall \"$FILE\" -o \"$EXE\" || exit 1; fi && cp \"$EXE\" bin/_debug/debug.exe",
             "options": {
-                "cwd": "${workspaceFolder}"
+                "cwd": "${workspaceFolder}",
+                "shell": {
+                    "executable": "C:/Program Files/Git/bin/bash.exe",
+                    "args": ["--norc", "--noprofile", "-c"]
+                }
             },
             "group": {
                 "kind": "build",
@@ -20,9 +24,13 @@
         {
             "label": "run-current-file",
             "type": "shell",
-            "command": "runc '${file}'",
+            "command": "REL_DIR=$(cygpath -m '${relativeFileDirname}'); REL_DIR=${REL_DIR#src/}; FILE=$(cygpath -m '${file}'); OUT_DIR=\"bin/$REL_DIR\"; EXE=\"$OUT_DIR/${fileBasenameNoExtension}.exe\"; PCH=\"bin/_pch/bits/stdc++.h.gch\"; if [ ! -f \"$PCH\" ]; then mkdir -p bin/_pch/bits && printf '#pragma once\\n#include_next <bits/stdc++.h>\\n' > bin/_pch/bits/stdc++.h && g++ -std=c++20 -g -O0 -Wall -x c++-header bin/_pch/bits/stdc++.h -o \"$PCH\"; fi; mkdir -p \"$OUT_DIR\" && if [ ! -f \"$EXE\" ] || [ \"$FILE\" -nt \"$EXE\" ]; then g++ -Ibin/_pch -std=c++20 -g -O0 -Wall \"$FILE\" -o \"$EXE\" || exit 1; fi && \"$EXE\"",
             "options": {
-                "cwd": "${workspaceFolder}"
+                "cwd": "${workspaceFolder}",
+                "shell": {
+                    "executable": "C:/Program Files/Git/bin/bash.exe",
+                    "args": ["--norc", "--noprofile", "-c"]
+                }
             },
             "group": {
                 "kind": "test",
@@ -34,7 +42,7 @@
                 "focus": true,
                 "clear": true
             },
-            "problemMatcher": []
+            "problemMatcher": "$gcc"
         }
     ]
 }
