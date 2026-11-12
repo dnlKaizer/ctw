@@ -15,13 +15,13 @@ O projeto permite gerar automaticamente a estrutura de pastas e arquivos `.cpp` 
 │   ├── settings.json   # Configuração do IntelliSense C++ (g++ / C++20) e ocultação de binários
 │   └── tasks.json      # Tasks de compilação espelhada em bin/ e execução rápida (F5)
 ├── src/                # Código-fonte (.cpp) e editoriais (.md) organizados por plataforma
-│   ├── cf/             # Problemas do Codeforces (ex: src/cf/908/C/main.cpp e editorial.md)
-│   ├── bee/            # Problemas do Beecrowd (ex: src/bee/1938/main.cpp e editorial.md)
-│   ├── atc/            # Problemas do AtCoder (ex: src/atc/abc300/A/main.cpp e editorial.md)
+│   ├── cf/             # Problemas do Codeforces (ex: src/cf/908/C/main.cpp e README.md)
+│   ├── bee/            # Problemas do Beecrowd (ex: src/bee/1938/main.cpp e README.md)
+│   ├── atc/            # Problemas do AtCoder (ex: src/atc/abc300/A/main.cpp e README.md)
 │   └── gen/            # Testes genéricos e algoritmos (ex: src/gen/geometry/ConvexHull/main.cpp)
 ├── bin/                # Executáveis compilados (.exe) espelhando a estrutura de src/ (ignorado pelo Git)
-├── cli.py              # Script unificado de geração dos diretórios, main.cpp, editorial.md e casos de teste
-├── template.md         # Template base para o editorial.md de cada problema
+├── cli.py              # Script unificado de geração dos diretórios, main.cpp, README.md e casos de teste
+├── template.md         # Template base para o README.md de cada problema
 └── README.md
 ```
 
@@ -61,7 +61,7 @@ O projeto permite gerar automaticamente a estrutura de pastas e arquivos `.cpp` 
     {
       "label": "build-current-file",
       "type": "shell",
-      "command": "REL_DIR=$(cygpath -m '${relativeFileDirname}'); REL_DIR=${REL_DIR#src/}; FILE=$(cygpath -m '${file}'); OUT_DIR=\"bin/$REL_DIR\"; EXE=\"$OUT_DIR/${fileBasenameNoExtension}.exe\"; PCH=\"bin/_pch/bits/stdc++.h.gch\"; if [ ! -f \"$PCH\" ]; then mkdir -p bin/_pch/bits && printf '#pragma once\\n#include_next <bits/stdc++.h>\\n' > bin/_pch/bits/stdc++.h && g++ -std=c++20 -g -O0 -Wall -x c++-header bin/_pch/bits/stdc++.h -o \"$PCH\"; fi; mkdir -p \"$OUT_DIR\" bin/_debug && if [ ! -f \"$EXE\" ] || [ \"$FILE\" -nt \"$EXE\" ]; then g++ -Ibin/_pch -std=c++20 -g -O0 -Wall \"$FILE\" -o \"$EXE\" || exit 1; fi && cp \"$EXE\" bin/_debug/debug.exe",
+      "command": "FILE=$(cygpath -m '${file}'); REL_DIR=$(dirname \"$FILE\"); REL_DIR=${REL_DIR#*src/}; OUT_DIR=\"bin/$REL_DIR\"; EXE=\"$OUT_DIR/${fileBasenameNoExtension}.exe\"; PCH=\"bin/_pch/bits/stdc++.h.gch\"; if [ ! -f \"$PCH\" ]; then mkdir -p bin/_pch/bits && printf '#pragma once\\n#include_next <bits/stdc++.h>\\n' > bin/_pch/bits/stdc++.h && g++ -std=c++20 -g -O0 -Wall -x c++-header bin/_pch/bits/stdc++.h -o \"$PCH\"; fi; mkdir -p \"$OUT_DIR\" bin/_debug && if [ ! -f \"$EXE\" ] || [ \"$FILE\" -nt \"$EXE\" ]; then g++ -Ibin/_pch -std=c++20 -g -O0 -Wall \"$FILE\" -o \"$EXE\" || exit 1; fi && cp \"$EXE\" bin/_debug/debug.exe",
       "options": {
         "cwd": "${workspaceFolder}",
         "shell": {
@@ -81,7 +81,7 @@ O projeto permite gerar automaticamente a estrutura de pastas e arquivos `.cpp` 
     {
       "label": "run-current-file",
       "type": "shell",
-      "command": "REL_DIR=$(cygpath -m '${relativeFileDirname}'); REL_DIR=${REL_DIR#src/}; FILE=$(cygpath -m '${file}'); OUT_DIR=\"bin/$REL_DIR\"; EXE=\"$OUT_DIR/${fileBasenameNoExtension}.exe\"; PCH=\"bin/_pch/bits/stdc++.h.gch\"; if [ ! -f \"$PCH\" ]; then mkdir -p bin/_pch/bits && printf '#pragma once\\n#include_next <bits/stdc++.h>\\n' > bin/_pch/bits/stdc++.h && g++ -std=c++20 -g -O0 -Wall -x c++-header bin/_pch/bits/stdc++.h -o \"$PCH\"; fi; mkdir -p \"$OUT_DIR\" && if [ ! -f \"$EXE\" ] || [ \"$FILE\" -nt \"$EXE\" ]; then g++ -Ibin/_pch -std=c++20 -g -O0 -Wall \"$FILE\" -o \"$EXE\" || exit 1; fi && \"$EXE\"",
+      "command": "FILE=$(cygpath -m '${file}'); REL_DIR=$(dirname \"$FILE\"); REL_DIR=${REL_DIR#*src/}; OUT_DIR=\"bin/$REL_DIR\"; EXE=\"$OUT_DIR/${fileBasenameNoExtension}.exe\"; PCH=\"bin/_pch/bits/stdc++.h.gch\"; if [ ! -f \"$PCH\" ]; then mkdir -p bin/_pch/bits && printf '#pragma once\\n#include_next <bits/stdc++.h>\\n' > bin/_pch/bits/stdc++.h && g++ -std=c++20 -g -O0 -Wall -x c++-header bin/_pch/bits/stdc++.h -o \"$PCH\"; fi; mkdir -p \"$OUT_DIR\" && if [ ! -f \"$EXE\" ] || [ \"$FILE\" -nt \"$EXE\" ]; then g++ -Ibin/_pch -std=c++20 -g -O0 -Wall \"$FILE\" -o \"$EXE\" || exit 1; fi && \"$EXE\"",
       "options": {
         "cwd": "${workspaceFolder}",
         "shell": {
@@ -164,25 +164,40 @@ notepad ~/.bashrc
 
 Adicione o seguinte conteúdo ao final do arquivo:
 ```bash
+# Localiza a raiz do projeto (onde está o cli.py) mesmo se o terminal estiver em uma subpasta
+_ctw_root() {
+    local dir="$PWD"
+    while [ "$dir" != "/" ] && [ -n "$dir" ]; do
+        if [ -f "$dir/cli.py" ]; then
+            echo "$dir"
+            return 0
+        fi
+        local parent=$(dirname "$dir")
+        [ "$parent" = "$dir" ] && break
+        dir="$parent"
+    done
+    git rev-parse --show-toplevel 2>/dev/null || echo "."
+}
+
 # Gerar arquivos para plataformas (Codeforces, Beecrowd, AtCoder, Genérico) e casos de teste
 cf() {
-    python cli.py cf "$@"
+    python "$(_ctw_root)/cli.py" cf "$@"
 }
 
 bee() {
-    python cli.py bee "$@"
+    python "$(_ctw_root)/cli.py" bee "$@"
 }
 
 atc() {
-    python cli.py atc "$@"
+    python "$(_ctw_root)/cli.py" atc "$@"
 }
 
 gen() {
-    python cli.py gen "$@"
+    python "$(_ctw_root)/cli.py" gen "$@"
 }
 
 tests() {
-    python cli.py tests "$@"
+    python "$(_ctw_root)/cli.py" tests "$@"
 }
 
 # Compilar C++ (em bin/<caminho_relativo>) e executar uma solução
@@ -196,14 +211,17 @@ runc() {
         return 1
     fi
 
+    local ROOT_DIR=$(cygpath -m "$(_ctw_root)")
     local TARGET=$(cygpath -m "$1")
     TARGET="${TARGET%/}"
     TARGET="${TARGET%.cpp}"
     local FILE=""
 
     if [ ! -f "${TARGET}.cpp" ] && [ ! -d "$TARGET" ]; then
-        if [ -f "src/${TARGET}.cpp" ] || [ -d "src/$TARGET" ]; then
-            TARGET="src/$TARGET"
+        if [ -f "$ROOT_DIR/${TARGET}.cpp" ] || [ -d "$ROOT_DIR/$TARGET" ]; then
+            TARGET="$ROOT_DIR/$TARGET"
+        elif [ -f "$ROOT_DIR/src/${TARGET}.cpp" ] || [ -d "$ROOT_DIR/src/$TARGET" ]; then
+            TARGET="$ROOT_DIR/src/$TARGET"
         fi
     fi
 
@@ -235,6 +253,7 @@ runc() {
         return 1
     fi
 
+    FILE=$(cygpath -m "$(cd "$(dirname "$FILE")" && pwd)/$(basename "$FILE")")
     local SRC_DIR=$(dirname "$FILE")
     local BIN_NAME=$(basename "$TARGET")
 
@@ -247,20 +266,21 @@ runc() {
         REL_DIR=""
     fi
 
-    local OUT_DIR="bin${REL_DIR:+/$REL_DIR}"
+    local OUT_DIR="$ROOT_DIR/bin${REL_DIR:+/$REL_DIR}"
     mkdir -p "$OUT_DIR"
 
     local EXE_PATH="$OUT_DIR/${BIN_NAME}.exe"
-    local PCH_PATH="bin/_pch/bits/stdc++.h.gch"
+    local PCH_DIR="$ROOT_DIR/bin/_pch"
+    local PCH_PATH="$PCH_DIR/bits/stdc++.h.gch"
 
     if [ ! -f "$PCH_PATH" ]; then
-        mkdir -p bin/_pch/bits
-        printf '#pragma once\n#include_next <bits/stdc++.h>\n' > bin/_pch/bits/stdc++.h
-        g++ -std=c++20 -g -O0 -Wall -x c++-header bin/_pch/bits/stdc++.h -o "$PCH_PATH" || return 1
+        mkdir -p "$PCH_DIR/bits"
+        printf '#pragma once\n#include_next <bits/stdc++.h>\n' > "$PCH_DIR/bits/stdc++.h"
+        g++ -std=c++20 -g -O0 -Wall -x c++-header "$PCH_DIR/bits/stdc++.h" -o "$PCH_PATH" || return 1
     fi
 
     if [ ! -f "$EXE_PATH" ] || [ "$FILE" -nt "$EXE_PATH" ]; then
-        g++ -Ibin/_pch -std=c++20 -g -O0 -Wall "$FILE" -o "$EXE_PATH" || return 1
+        g++ -I"$PCH_DIR" -std=c++20 -g -O0 -Wall "$FILE" -o "$EXE_PATH" || return 1
     fi
 
     local INPUT_FILE=""
@@ -298,9 +318,9 @@ source ~/.bashrc
 
 ### 1. Criar estrutura de arquivos por plataforma
 
-O projeto aceita comandos dedicados para cada plataforma (`cf`, `bee`, `atc` e `gen`), criando uma pasta isolada para cada problema com `main.cpp` (vazio) e `editorial.md` (preenchido a partir do `template.md`, substituindo automaticamente `[ID]` e `[URL do problema]`):
+O projeto aceita comandos dedicados para cada plataforma (`cf`, `bee`, `atc` e `gen`), criando uma pasta isolada para cada problema com `main.cpp` (vazio) e `README.md` (preenchido a partir do `template.md`, substituindo automaticamente `[ID]` e `[URL do problema]`):
 
-* **Links gerados automaticamente no `editorial.md`:**
+* **Links gerados automaticamente no `README.md`:**
   * **Codeforces (`cf`):**
     * Contest (`id <= 100000`): `https://codeforces.com/contest/<id>/problem/<letter>`
     * Gym (`id > 100000`): `https://codeforces.com/gym/<id>/problem/<letter>`
@@ -313,13 +333,13 @@ O projeto aceita comandos dedicados para cada plataforma (`cf`, `bee`, `atc` e `
   ```bash
   cf 908
   ```
-  *(Cria `src/cf/908/A/main.cpp` e `editorial.md` até `src/cf/908/F/`)*
+  *(Cria `src/cf/908/A/main.cpp` e `README.md` até `src/cf/908/F/`)*
 
 * Gerar problemas específicos:
   ```bash
   cf 908 C
   ```
-  *(Cria `src/cf/908/C/main.cpp` e `src/cf/908/C/editorial.md`)*
+  *(Cria `src/cf/908/C/main.cpp` e `src/cf/908/C/README.md`)*
 
 ---
 
@@ -328,7 +348,7 @@ O projeto aceita comandos dedicados para cada plataforma (`cf`, `bee`, `atc` e `
   ```bash
   atc abc300
   ```
-  *(Cria `src/atc/abc300/A/main.cpp` e `editorial.md` até `F/`)*
+  *(Cria `src/atc/abc300/A/main.cpp` e `README.md` até `F/`)*
 
 * Gerar problemas específicos:
   ```bash
@@ -342,13 +362,13 @@ O projeto aceita comandos dedicados para cada plataforma (`cf`, `bee`, `atc` e `
   ```bash
   bee 1938
   ```
-  *(Cria `src/bee/1938/main.cpp` e `src/bee/1938/editorial.md`)*
+  *(Cria `src/bee/1938/main.cpp` e `src/bee/1938/README.md`)*
 
 * Agrupar vários problemas por categoria/tópico:
   ```bash
   bee math 1028 1161
   ```
-  *(Cria `src/bee/math/1028/main.cpp` e `editorial.md`, etc.)*
+  *(Cria `src/bee/math/1028/main.cpp` e `README.md`, etc.)*
 
 ---
 
@@ -357,13 +377,13 @@ O projeto aceita comandos dedicados para cada plataforma (`cf`, `bee`, `atc` e `
   ```bash
   gen geometry ConvexHull
   ```
-  *(Cria `src/gen/geometry/ConvexHull/main.cpp` e `src/gen/geometry/ConvexHull/editorial.md`)*
+  *(Cria `src/gen/geometry/ConvexHull/main.cpp` e `src/gen/geometry/ConvexHull/README.md`)*
 
 * Criar múltiplos tópicos de uma vez:
   ```bash
   gen graphs Dijkstra BFS DFS
   ```
-  *(Cria `src/gen/graphs/Dijkstra/main.cpp` e `editorial.md`, etc.)*
+  *(Cria `src/gen/graphs/Dijkstra/main.cpp` e `README.md`, etc.)*
 
 ---
 

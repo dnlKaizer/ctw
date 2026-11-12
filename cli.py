@@ -31,7 +31,7 @@ def get_editorial_content(base_dir: Path, problem_label: str, problem_url: str) 
     return f"# {problem_label} - [Nome do Problema]\n\n- **Link:** {problem_url}\n"
 
 def create_problem_dir(base_dir: Path, problem_dir: Path, problem_label: str, problem_url: str):
-    """Cria a pasta do problema contendo main.cpp e editorial.md."""
+    """Cria a pasta do problema contendo main.cpp e README.md."""
     problem_dir.mkdir(parents=True, exist_ok=True)
 
     cpp_path = problem_dir / "main.cpp"
@@ -41,13 +41,13 @@ def create_problem_dir(base_dir: Path, problem_dir: Path, problem_label: str, pr
         cpp_path.write_text("", encoding="utf-8")
         print(f"[+] Criado: {cpp_path.relative_to(base_dir)}")
 
-    editorial_path = problem_dir / "editorial.md"
-    if editorial_path.exists():
-        print(f"[-] {editorial_path.relative_to(base_dir)} já existe. Ignorado.")
+    readme_path = problem_dir / "README.md"
+    if readme_path.exists():
+        print(f"[-] {readme_path.relative_to(base_dir)} já existe. Ignorado.")
     else:
         editorial_content = get_editorial_content(base_dir, problem_label, problem_url)
-        editorial_path.write_text(editorial_content, encoding="utf-8")
-        print(f"[+] Criado: {editorial_path.relative_to(base_dir)}")
+        readme_path.write_text(editorial_content, encoding="utf-8")
+        print(f"[+] Criado: {readme_path.relative_to(base_dir)}")
 
 def handle_tests(args: list[str], base_dir: Path):
     if not args:
@@ -137,7 +137,7 @@ def main():
 
     elif platform == "bee":
         if not raw_problems:
-            # Ex: bee 1938 -> src/bee/1938/main.cpp e editorial.md
+            # Ex: bee 1938 -> src/bee/1938/main.cpp e README.md
             clean_id = group_id[:-4] if group_id.endswith(".cpp") else group_id
             problem_dir = base_dir / "src" / "bee" / clean_id
             url = build_problem_url("bee", group_id, clean_id)
@@ -149,7 +149,7 @@ def main():
                 url = build_problem_url("bee", group_id, pid)
                 create_problem_dir(base_dir, problem_dir, pid, url)
         else:
-            # Ex: bee math 1028 1161 -> src/bee/math/1028/main.cpp e editorial.md
+            # Ex: bee math 1028 1161 -> src/bee/math/1028/main.cpp e README.md
             for p in raw_problems:
                 clean_p = p[:-4] if p.endswith(".cpp") else p
                 problem_dir = base_dir / "src" / "bee" / group_id / clean_p
@@ -158,13 +158,13 @@ def main():
 
     else:  # gen
         if not raw_problems:
-            # Ex: gen ConvexHull -> src/gen/ConvexHull/main.cpp e editorial.md
+            # Ex: gen ConvexHull -> src/gen/ConvexHull/main.cpp e README.md
             clean_id = group_id[:-4] if group_id.endswith(".cpp") else group_id
             problem_dir = base_dir / "src" / "gen" / clean_id
             url = build_problem_url("gen", group_id, clean_id)
             create_problem_dir(base_dir, problem_dir, clean_id, url)
         else:
-            # Ex: gen geometry ConvexHull -> src/gen/geometry/ConvexHull/main.cpp e editorial.md
+            # Ex: gen geometry ConvexHull -> src/gen/geometry/ConvexHull/main.cpp e README.md
             for p in raw_problems:
                 clean_p = p[:-4] if p.endswith(".cpp") else p
                 problem_dir = base_dir / "src" / "gen" / group_id / clean_p
