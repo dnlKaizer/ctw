@@ -1,0 +1,8 @@
+# B - Between Two Cameras
+
+- **Link:** https://moj.naquadah.com.br/treino/problema/?id=icpc-latam-2026%23b-cats
+- **Tópicos:** Geometry, Data Structures, Binary Search
+- **Ideia central:** Ordenar pontos a partir da origem $(0, 0)$ e um outro ponto $(d, 0)$. Calcular as inversões ponderadas entre índices dessas duas listas.
+- **Insight:** Ordenar os pontos usando produto vetorial para obter as duas listas de índices. Escolher um array de referência e armazenar as posições de seus valores no outro array. Perceba que o número mais à esquerda na lista de referência vai ser uma inversão para todos os números à esquerda dele na outra lista. Considerando que o índice $i$ na lista de referência é $j$ na outra lista, então o número de inversões que ele contribui pertence ao intervalo $[1, j - 1]$. Isso significa multiplicar seu peso $w[i]$ pelo somatório de todos os pesos de $1$ a $j - 1$ da outra lista. Logo, podemos usar um prefix sum para calcular esse somatório. Mas tem um detalhe, após computar o índice $i$, temos que atualizar o prefix sum da outra lista, atualizando seu valor para 0, se não, vamos computar um par incorreto na soma. Para resolver isso de forma eficiente, podemos usar uma Fenwick Tree, atualizando o valor do $w[i]$ após computá-lo.
+- **Complexidade:** Tempo $O(N\log{N})$, Espaço $O(N)$
+- **Pontos de atenção:** Lembrar que é necessário subtrair o ponto $(d, 0)$ de todos os pontos antes de ordenar os pontos da segunda lista e, além disso, é necessário mudar o sentido para o horário.
