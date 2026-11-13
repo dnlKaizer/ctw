@@ -1,0 +1,8 @@
+# 2290E - Avalanche
+
+- **Link:** https://codeforces.com/contest/2290/problem/E
+- **Tópicos:** Two Pointers, Math, Games
+- **Ideia central:** Encontrar o vencedor do jogo considerando que ambos os jogadores jogam de forma ótima. Há várias pilhas de pedras e cada jogador escolhe uma pilha e remove uma pedra. Ao fazer isso na pilha $i$, as pilhas à esquerda que vão de $min(i-k, 0)$ até $i-1$ recebem uma pedra a mais. O jogo termina quando todas as pilhas estão vazias. O jogador que não consegue fazer um movimento perde.
+- **Insight:** Ao remover uma pedra da pilha $i$ seguido de uma da pilha $j$, o estado do jogo será o mesmo do que executar o processo inverso, o que mostra que, independente da ordem das jogadas, o resultado sempre será o mesmo. Além disso, esse problema pode ser reduzido à paridade da quantidade de pedras em cada pilha. Se a quantidade de pedras em uma pilha for ímpar, ela inverte a paridade das pilhas à esquerda. Se for par, não altera a paridade. Portanto, podemos transformar o array inicial em um array de paridades (0 para par, 1 para ímpar) e então calcular o XOR cumulativo das paridades. Usando uma janela deslizante e um estado de prefixo (0 ou 1), é possível descobrir o estado final de uma pilha após todas as pilhas da direita serem processadas. Somando os valores desse estado final, podemos determinar o vencedor do jogo: Alice, se for par, e Bob, se for ímpar.
+- **Complexidade:** Tempo $O(N)$, Espaço $O(N)$
+- **Pontos de atenção:** Nenhum
