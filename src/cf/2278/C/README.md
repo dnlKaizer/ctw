@@ -1,0 +1,8 @@
+# 2278C - Math and Physics
+
+- **Link:** https://codeforces.com/contest/2278/problem/C
+- **Tópicos:** Greedy
+- **Ideia central:** Considerando um vetor de tamanho $N$ formado por inteiros (positvos e/ou negativos) e uma operação: (1) escolher um elemento $a_i$ do vetor e (2) adicionar um valor $x \geq 1$ a um elemento da esquerda (se houver) e um valor $y \geq 1$ a um elemento da direita (se houver), de forma que $x + y = a_i$ e (3) remover o elemento $a_i$ do vetor. O objetivo é determinar se é possível remover todos os elementos do vetor utilizando a operação descrita até que sobre apenas um único elemento e qual o valor máximo que esse elemento pode ter
+- **Insight:** Como ao remover elementos do canto nós perdemos pelo menos uma unidade de valor, a ideia é tentar operar sempre os elementos do meio até que sobre apenas dois elementos. Simulando alguns exemplos, é possível perceber que a ordem de operação não importa desde que o elemento operado não seja um extremo do vetor. Além disso, perceba que para valores $1$, não é possível operar. Considere a soma de todos os elementos do vetor como $S$. Então, a solução consiste em verificar se existe algum número maior que $1$ no vetor: (1) se não existir, o vetor não é válido e o resultado é $-1$, (2) se existir, mas não for elemento do meio, o resultado é $S - N + 1$ e (3) se existir, e for elemento do meio, o resultado é $S - 1$
+- **Complexidade:** Tempo $O(N)$, Espaço $O(1)$
+- **Pontos de atenção:** Lembrar que para $N = 1$ não é possível operar, mas o vetor já está na forma desejada, logo, o resultado é o próprio elemento
