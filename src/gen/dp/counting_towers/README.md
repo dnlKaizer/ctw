@@ -1,0 +1,8 @@
+# Counting Towers
+
+- **Link:** https://cses.fi/problemset/task/2413/
+- **Tópicos:** DP, Combinatorics
+- **Ideia central:** Dado uma altura $N$ para um retângulo de largura 2, determinar o número de combinações possíveis de preencher toda a torre usando blocos retangulares de qualquer tamanho
+- **Insight:** Usar uma $dp[i][j]$ para representar o número de maneiras de preencher uma torre de altura $i$ e largura $j$ (j pode ser 0 ou 1, mas representa largura 1 e 2, respectivamente). A ideia é analisar a posição anterior e "fundir" blocos ou não para formar a torre. Por exemplo, na posição $i$, podemos colocar um bloco de largura 2 em cima de uma torre onde o topo tem um bloco único ou 2 blocos e também podemos fundir a uma torre que tem bloco único, ou seja, $dp[i][1] = 2 * dp[i-1][1] + dp[i-1][0]$. Já para blocos separados, temos a mesma opção de só colocar por cima em cada torre ou de fundir ambos os blocos, fundir só o da direita ou fundir só o da esquerda, ou seja, $dp[i][0] = 4 * dp[i-1][0] + dp[i-1][1]$. Para evitar recalcular valores a todo momento, podemos calcular todos os possíveis valores de $dp[i][j]$ para $N = 10^6$ e armazenar em um array para responder as queries de forma eficiente
+- **Complexidade:** Tempo $O(N \times T)$, Espaço $O(N)$
+- **Pontos de atenção:** Como a $dp$ depende somente do estado anterior, é possível otimizar o espaço para $O(1)$, mantendo apenas os dois últimos estados da $dp$. Mas isso acaba não sendo muito útil aqui porque precisamos guardar todos os valores para responder as queries
