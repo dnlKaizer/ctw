@@ -205,6 +205,10 @@ gen() {
     python3 "$(_ctw_root)/cli.py" gen "$@"
 }
 
+cses() {
+    python3 "$(_ctw_root)/cli.py" cses "$@"
+}
+
 tests() {
     python3 "$(_ctw_root)/cli.py" tests "$@"
 }
@@ -336,6 +340,7 @@ O projeto aceita comandos dedicados para cada plataforma (`cf`, `bee`, `atc`, `l
   * **Beecrowd (`bee`):** `https://judge.beecrowd.com/pt/problems/view/<id>`
   * **AtCoder (`atc`):** `https://atcoder.jp/contests/<id>/tasks/<id>_<letter>`
   * **LeetCode (`leet`):** `https://leetcode.com/problems/<slug>/`
+  * **CSES (`cses`):** `[COLOQUE O LINK AQUI]`
   * **Genérico (`gen`):** `[COLOQUE O LINK AQUI]`
 
 #### **Codeforces (`cf`)**

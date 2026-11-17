@@ -3,7 +3,7 @@ import re
 from pathlib import Path
 
 DEFAULT_PROBLEMS = ["A", "B", "C", "D", "E", "F"]
-VALID_PLATFORMS = {"cf", "bee", "atc", "leet", "gen"}
+VALID_PLATFORMS = {"cf", "bee", "atc", "leet", "gen", "cses"}
 VALID_COMMANDS = VALID_PLATFORMS | {"tests"}
 
 def _format_leet_slug(problem_id: str) -> str:
@@ -174,15 +174,15 @@ def main():
         if not raw_problems:
             # Ex: gen ConvexHull -> src/gen/ConvexHull/main.cpp e README.md
             clean_id = group_id[:-4] if group_id.endswith(".cpp") else group_id
-            problem_dir = base_dir / "src" / "gen" / clean_id
-            url = build_problem_url("gen", group_id, clean_id)
+            problem_dir = base_dir / "src" / platform / clean_id
+            url = build_problem_url(platform, group_id, clean_id)
             create_problem_dir(base_dir, problem_dir, clean_id, url)
         else:
             # Ex: gen geometry ConvexHull -> src/gen/geometry/ConvexHull/main.cpp e README.md
             for p in raw_problems:
                 clean_p = p[:-4] if p.endswith(".cpp") else p
-                problem_dir = base_dir / "src" / "gen" / group_id / clean_p
-                url = build_problem_url("gen", group_id, clean_p)
+                problem_dir = base_dir / "src" / platform / group_id / clean_p
+                url = build_problem_url(platform, group_id, clean_p)
                 create_problem_dir(base_dir, problem_dir, clean_p, url)
 
 if __name__ == "__main__":
