@@ -1,0 +1,8 @@
+# 2200D - Portal
+
+- **Link:** https://codeforces.com/contest/2200/problem/D
+- **Tópicos:** Greedy
+- **Ideia central:** Dada uma permutação de tamanho $N$ e dois valores inteiros $0 \leq x < y \leq N$ que representam dois portais, determinar o vetor lexicograficamente mínimo. O portal pode: (1) remover um elemento da esquerda de um dos portais e adicioná-lo na direita do outro, (2) ou remover da direita de um e adicionar na esquerda do outro, podendo utilizar quantas operações forem necessárias.
+- **Insight:** Analisando as operações, percebe-se que o portal não altera a ordem dos elementos fora dele, bem como não altera a quantidade de elementos dentro dele. Ele pode alterar apenas a ordem dos elementos dentro dele e onde eles aparecem no vetor global. Como é uma permutação, nenhum elemento pode ser igual a outro. Logo, o que precisamos fazer é: encontrar o menor elemento $k$ dentro do portal e compará-lo com os elementos fora do portal, seguindo a ordem original. Enquanto um dos elementos de fora for menor que $k$, podemos imprimir eles. Quando $k$ for o menor, temos que imprimir todos os elementos do portal começando por $k$ e respeitando a ordem circular do mesmo. Então, imprimos o resto do vetor de fora. Isso pode ser feito utilizando dois vetores: um para os elementos do portal e um para os elementos de fora dele.
+- **Complexidade:** Tempo $O(N)$, Espaço $O(N)$
+- **Pontos de atenção:** O portal sempre terá pelo menos um elemento, mas o vetor de fora pode ser vazio

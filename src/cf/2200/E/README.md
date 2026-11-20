@@ -1,0 +1,8 @@
+# 2200E - Divisive Battle
+
+- **Link:** https://codeforces.com/contest/2200/problem/E
+- **Tópicos:** Greedy, Math, Number theory
+- **Ideia central:** Dado um vetor $a$ de tamanho $N$, determinar o vecedor do jogo. Em cada turno, há duas opções: (1) se o array for crescente, o jogo se encerra, (2) se não, o jogador pode escolher um elemento $x$ do vetor tal que $x = yz$ e substituir $x$ por $y$ e $z$, em qualquer ordem. Alice ganha se o vetor final não for crescente, caso contrário, Bob ganha. Alice começa jogando e ambos jogam de forma ótima.
+- **Insight:** Se existe algum número $x = p_a p_b$, no qual $p_a$ tem pelo menos um fator primo menor que qualquer fator primo de $p_b$, então ela automaticamente consegue fazer uma jogada vencedora. Em outra palavras, se existe algum número $x$ que tem mais de um fator primo, Alice ganha. Além disso, se todos os números $a_i$ tiverem apenas um fator primo, no qual $a_i = (p_a)^u$ e $a_{i+k} = (p_b)^v$ ($u$, $v$ e $k$ inteiros positivos), mas que $p_a > p_b$, Alice também ganha. Então podemos usar um vetor auxiliar $b$ que guarda o fator primo de cada elemento $a_i$ ou -1 se ele tiver mais de um fator primo. Antes de tudo, verificamos se $a$ é um vetor crescente e Bob ganha, se não, verificamos se existe algum elemento -1 em $b$ e Alice ganha, se não, verificamos se $b$ é crescente e Bob ganha, se não, Alice ganha.
+- **Complexidade:** Tempo $O(N\sqrt{\max(a)})$, Espaço $O(N)$
+- **Pontos de atenção:** Nenhum
