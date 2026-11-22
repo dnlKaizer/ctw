@@ -1,0 +1,8 @@
+# 2285C - Max Substitution
+
+- **Link:** https://codeforces.com/contest/2285/problem/C
+- **Tópicos:** Combinatorics, Sortings, Number Theory
+- **Ideia central:** Dado um array $a$, podemos fazer a seguinte operação sempre que existir um único número $x$ máximo no array: setar $x := k$, onde $1 \leq k < x$. Determine número de arrays distintos possíveis usando apenas essa operação 
+- **Insight:** Como sempre vamos operar pelo maior, podemos começar ordenando o array de forma decrescente. Cada número $a_i$ pode ser setado com números no intervalo $[1, a_i)$. Logicamente, o primeiro número pode contribuir com $a_1 - 1$ novos arrays, além do inicial. Já o segundo, vai contribuir com $(a_2 - 1)^2$, pois, para cada valor que setarmos $a_2$, podemos setar o $a_1$ no mesmo intervalo $[1, a_2)$ também previamente. O mesmo vale para $a_3$, mas nele podemos setar tanto o $a_1$ quanto o $a_2$ nesse intervalo, gerando $(a_3 - 1)^3$ contribuições. Temos então que a resposta será $\sum_{i=1}^{n}(a_i - 1) ^ i$, considerando o array $a$ ordenado. O único detalhe é, se $a_i = a_{i+1}$, então paramos a execução, pois a operação só é válida quando o valor máximo do array é único. Isso pode ser feito de forma iterativa no array ordenando usando exponenciação rápida
+- **Complexidade:** Tempo $O(N \log{N})$, Espaço $O(N)$
+- **Pontos de atenção:** Lembre-se de fazer o resto da divisão em todas as operações. Use $long long$ para evitar problemas
