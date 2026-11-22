@@ -1,0 +1,8 @@
+# 2288C - Reimu Hakurei and the Youkai
+
+- **Link:** https://codeforces.com/contest/2288/problem/C
+- **Tópicos:** Greedy, Sortings
+- **Ideia central:** Dado um array $a$ de tamanho $N$, no qual $a_i$ representa a vida de um youkai, e um valor $x$ que representa o dano de ataque de Reimu Hakurei, determinar o número cartas de feitiço gastas para derrotar todos os youkai até sobrar apenas um. Ao fazer um ataque, Reimu Hakurei consegue atingir sempre de $1$ a $m-1$ youkais, onde $m$ representa a quantidade de youkais vivos no momento. Se ele matar pelo menos um youkai, ou seja, deixar sua vida igual a $0$ ou menos, ele consegue fazer o próximo ataque normalmente, caso contrário, se todos os youkais atacados sobreviverem, ele precisa de gastar uma carta de feitiço
+- **Insight:** A ideia consiste em deixar o youkai com mais vida vivo e matar todos os outros. Se tiver dois ou mais youkais com $x$ ou menos de vida em uma rodada, faz sentido Reimu matar apenas um deles e poupar os outros, para evitar gastar cartas de feitiço nas próximas rodadas. Podemos atacar todos (com exceção do que ficará vivo) em todas as rodadas, poupando aqueles que estiverem a um ataque de morrer, matando somente $1$ youkai por rodada. A implementação consiste em ordenar os youkais pela vida e iterar sobre o mais fraco ao mais forte, mantendo uma variável $k$ de dano acumulado. Se $a_i <= k$, então vamos matar esse youkai e fazer $k = x + k$. Se $a_i > k$, então vamos ter que gastar cartas de feitiço até matar esse youkai, ou seja, tomando $c$ como o número de cartas de feitiço gastas e um valor $v = \lfloor \frac{a_i - k}{x} \rfloor$, temos que $c = c + v$ e $k = x \times v$ 
+- **Complexidade:** Tempo $O(N \log{N})$, Espaço $O(N)$
+- **Pontos de atenção:** Nenhum
