@@ -1,0 +1,8 @@
+# E - Escape Plan
+
+* **Link:** https://moj.naquadah.com.br/treino/problema/?id=icpc-latam-2026%23e-escape_plan
+* **Tópicos:** DFS, Graphs, Greedy
+* **Ideia central:** Dada uma árvore direcionada enraizada no nó $1$ (arestas sempre do pai para o filho), atribuir a cada folha $s$ exatamente uma aresta de retorno para um ancestral $e(s)$, tal que cada nó receba no máximo uma aresta de retorno e todas as folhas consigam alcançar a raiz $1$.
+* **Insight:** Para evitar ciclos isolados, toda subárvore precisa ter pelo menos uma folha escapando para um ancestral estrito acima dela (logo, se a raiz $1$ tiver mais de $1$ filho, é impossível). Na DFS *top-down*, mantemos a invariante de que todo nó $u$ já entra com um destino válido `to` acima dele: o 1º filho herda `to`, o 2º filho usa o próprio $u$ (que já alcança $1$), e do 3º em diante consomem o ancestral livre mais profundo disponível em uma pilha de candidatos (nós de grau de saída $1$ no caminho atual).
+* **Complexidade:** Tempo $O(N)$, Espaço $O(N)$
+* **Pontos de atenção:** (1) Resolver `to == -1` apenas na folha permite que um nó de 1 filho entre na pilha de candidatos e seja escolhido pela sua própria folha. É obrigatório consumir o candidato *antes* de empilhar o nó atual. (2) Controlar a pilha por tamanho (`cnt`) falha quando um ramo consome um candidato e empilha a si mesmo (o tamanho não muda, mas o elemento do topo mudou). Usar um evento de saída (`exiting = true`) na pilha da DFS resolve isso de forma segura. (3) Verificar `adj[1].size() > 1` no início e retornar `*`.
