@@ -2,7 +2,7 @@
 
 Ambiente local para resolução, execução e depuração de problemas de programação competitiva em **C++**, configurado para o VS Code e **WSL** (ou Git Bash) no Windows.
 
-O projeto permite gerar automaticamente a estrutura de pastas e arquivos `.cpp` vazios para cada contest/problema em `src/`, compilar os binários de forma espelhada e isolada em `bin/`, executar direto pelo terminal (com suporte a arquivos de teste) ou via atalho `F5`, e debugar via `Ctrl + F5` com breakpoints usando `g++` e `gdb`.
+O projeto permite gerar automaticamente a estrutura de pastas e arquivos `.cpp` (preenchidos a partir do `template.cpp`) para cada contest/problema em `src/`, compilar os binários de forma espelhada e isolada em `bin/`, executar direto pelo terminal (com suporte a arquivos de teste) ou via atalho `F5`, e debugar via `Ctrl + F5` com breakpoints usando `g++` e `gdb`.
 
 ---
 
@@ -22,6 +22,7 @@ O projeto permite gerar automaticamente a estrutura de pastas e arquivos `.cpp` 
 │   └── gen/            # Testes genéricos e algoritmos (ex: src/gen/geometry/ConvexHull/main.cpp)
 ├── bin/                # Executáveis compilados espelhando a estrutura de src/ (ignorado pelo Git)
 ├── cli.py              # Script unificado de geração dos diretórios, main.cpp, README.md e casos de teste
+├── template.cpp        # Template base para o main.cpp de cada problema
 ├── template.md         # Template base para o README.md de cada problema
 └── README.md
 ```
@@ -331,7 +332,7 @@ source ~/.bashrc
 
 ### 1. Criar estrutura de arquivos por plataforma
 
-O projeto aceita comandos dedicados para cada plataforma (`cf`, `bee`, `atc`, `leet` e `gen`), criando uma pasta isolada para cada problema com `main.cpp` (vazio) e `README.md` (preenchido a partir do `template.md`, substituindo automaticamente `[ID]` e `[URL do problema]`):
+O projeto aceita comandos dedicados para cada plataforma (`cf`, `bee`, `atc`, `leet`, `cses` e `gen`), criando uma pasta isolada para cada problema com `main.cpp` (preenchido a partir do `template.cpp`) e `README.md` (preenchido a partir do `template.md`, substituindo automaticamente `[ID]` e `[URL do problema]`):
 
 * **Links gerados automaticamente no `README.md`:**
   * **Codeforces (`cf`):**

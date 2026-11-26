@@ -30,6 +30,14 @@ def build_problem_url(platform: str, group_id: str, problem_id: str = "") -> str
         return f"https://leetcode.com/problems/{_format_leet_slug(problem_id)}/"
     return "[COLOQUE O LINK AQUI]"
 
+def get_cpp_template_content(base_dir: Path) -> str:
+    """Lê o template.cpp da raiz (se existir) para inicializar o main.cpp."""
+    for candidate in ["template.cpp", "Template.cpp"]:
+        template_path = base_dir / candidate
+        if template_path.is_file():
+            return template_path.read_text(encoding="utf-8")
+    return ""
+
 def get_editorial_content(base_dir: Path, problem_label: str, problem_url: str) -> str:
     """Lê o template.md da raiz (se existir) e substitui os marcadores do problema."""
     for candidate in ["template.md", "Template.md"]:
@@ -49,7 +57,8 @@ def create_problem_dir(base_dir: Path, problem_dir: Path, problem_label: str, pr
     if cpp_path.exists() or (problem_dir / "Main.cpp").exists():
         print(f"[-] {cpp_path.relative_to(base_dir)} já existe. Ignorado.")
     else:
-        cpp_path.write_text("", encoding="utf-8")
+        cpp_content = get_cpp_template_content(base_dir)
+        cpp_path.write_text(cpp_content, encoding="utf-8")
         print(f"[+] Criado: {cpp_path.relative_to(base_dir)}")
 
     readme_path = problem_dir / "README.md"
